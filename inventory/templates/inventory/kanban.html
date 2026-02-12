@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}Kanban Board | NetDevFlow{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-0">Maintenance Kanban</h2>
+        <p class="text-muted">Drag and drop tickets to update infrastructure maintenance status.</p>
+    </div>
+    <div class="btn-group">
+        <a href="{% url 'ticket_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i> New Ticket
+        </a>
+        <button class="btn btn-outline-secondary" onclick="window.location.reload();">
+            <i class="fas fa-sync-alt"></i>
+        </button>
+    </div>
+</div>
+
+<!-- Kanban Board Container -->
+<div class="kanban-board pb-4">
+    
+    <!-- Open Column -->
+    <div class="kanban-column">
+        <div class="kanban-header">
+            <span><i class="fas fa-inbox me-2 text-primary"></i>OPEN</span>
+            <span class="badge bg-white text-dark shadow-sm">{{ tickets_open.count }}</span>
+        </div>
+        <div class="kanban-cards" id="OPEN" data-status="OPEN">
+            {% for ticket in tickets_open %}
+                {% include 'inventory/includes/kanban_card.html' with ticket=ticket %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- In Progress Column -->
+    <div class="kanban-column">
+        <div class="kanban-header">
+            <span><i class="fas fa-spinner fa-spin me-2 text-warning"></i>IN PROGRESS</span>
+            <span class="badge bg-white text-dark shadow-sm">{{ tickets_progress.count }}</span>
+        </div>
+        <div class="kanban-cards" id="IN_PROGRESS" data-status="IN_PROGRESS">
+            {% for ticket in tickets_progress %}
+                {% include 'inventory/includes/kanban_card.html' with ticket=ticket %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Resolved Column -->
+    <div class="kanban-column">
+        <div class="kanban-header">
+            <span><i class="fas fa-check-circle me-2 text-success"></i>RESOLVED</span>
+            <span class="badge bg-white text-dark shadow-sm">{{ tickets_resolved.count }}</span>
+        </div>
+        <div class="kanban-cards" id="RESOLVED" data-status="RESOLVED">
+            {% for ticket in tickets_resolved %}
+                {% include 'inventory/includes/kanban_card.html' with ticket=ticket %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Closed Column -->
+    <div class="kanban-column">
+        <div class="kanban-header">
+            <span><i class="fas fa-archive me-2 text-secondary"></i>CLOSED</span>
+            <span class="badge bg-white text-dark shadow-sm">{{ tickets_closed.count }}</span>
+        </div>
+        <div class="kanban-cards" id="CLOSED" data-status="CLOSED">
+            {% for ticket in tickets_closed %}
+                {% include 'inventory/includes/kanban_card.html' with ticket=ticket %}
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const columns = document.querySelectorAll('.kanban-cards');
+        
+        columns.forEach(column => {
+            new Sortable(column, {
+                group: 'kanban',
+                animation: 150,
+                ghostClass: 'ghost-card',
+                onEnd: function (evt) {
+                    const itemEl = evt.item; 
+                    const newStatus = evt.to.getAttribute('data-status');
+                    const ticketId = itemEl.getAttribute('data-id');
+
+                    // Call the backend to update the status
+                    updateTicketStatus(ticketId, newStatus);
+                }
+            });
+        });
+
+        async function updateTicketStatus(id, status) {
+            try {
+                const response = await fetch(`/tickets/${id}/update-status/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({ status: status })
+                });
+                
+                if (!response.ok) {
+                    console.error('Failed to update ticket status');
+                    // Optionally refresh page or move card back on failure
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+    });
+</script>
+{% endblock %}

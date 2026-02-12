@@ -1,16 +1,19 @@
-from django.shortcuts import render, redirect
+import json
+from django.shortcuts import render, get_object_or_404
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.urls import reverse_lazy
 from django.db.models import Count
+from django.http import JsonResponse
 from .models import Device, IPAddress, MaintenanceTicket, Profile
 
-# --- Dashboard View (Read Operation) ---
+# --- Dashboard View ---
 
 def dashboard(request):
     """
-    Aggregates stats for the main overview (LO1.4 Custom Logic).
+    Aggregates stats for the main overview.
     """
     context = {
         'total_devices': Device.objects.count(),
@@ -21,19 +24,60 @@ def dashboard(request):
     }
     return render(request, 'inventory/dashboard.html', context)
 
-# --- Role-Based Access Mixins (LO3) ---
+# --- Kanban Board Views (LO2.2 & Trello-style logic) ---
+
+@login_required
+def kanban_board(request):
+    """
+    Renders the Kanban board with tickets sorted by status columns.
+    """
+    tickets = MaintenanceTicket.objects.select_related('device', 'assigned_to').all()
+    context = {
+        'tickets_open': tickets.filter(status='OPEN'),
+        'tickets_progress': tickets.filter(status='IN_PROGRESS'),
+        'tickets_resolved': tickets.filter(status='RESOLVED'),
+        'tickets_closed': tickets.filter(status='CLOSED'),
+    }
+    return render(request, 'inventory/kanban.html', context)
+
+@login_required
+def update_ticket_status(request, pk):
+    """
+    Handles AJAX POST requests to update ticket status via drag-and-drop.
+    """
+    if request.method == 'POST':
+        # Check permissions: Read-only users cannot move cards
+        if request.user.profile.role == 'READONLY':
+            return JsonResponse({'status': 'error', 'message': 'Permission denied'}, status=403)
+
+        try:
+            data = json.loads(request.body)
+            new_status = data.get('status')
+            ticket = get_object_or_404(MaintenanceTicket, pk=pk)
+            
+            # Basic validation of incoming status
+            valid_statuses = [choice[0] for choice in MaintenanceTicket.STATUS_CHOICES]
+            if new_status in valid_statuses:
+                ticket.status = new_status
+                ticket.save()
+                return JsonResponse({'status': 'success'})
+            return JsonResponse({'status': 'error', 'message': 'Invalid status'}, status=400)
+        except json.JSONDecodeError:
+            return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
+            
+    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
+
+# --- Role-Based Access Mixins ---
 
 class ManagerRequiredMixin(UserPassesTestMixin):
-    """Restricts access to users with the 'MANAGER' role."""
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.profile.role == 'MANAGER'
 
 class TechOrManagerRequiredMixin(UserPassesTestMixin):
-    """Restricts access to Technicians or Managers (Not Read-Only)."""
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.profile.role in ['TECHNICIAN', 'MANAGER']
 
-# --- Device CRUD (LO2) ---
+# --- Device CRUD ---
 
 class DeviceListView(LoginRequiredMixin, ListView):
     model = Device
@@ -41,7 +85,6 @@ class DeviceListView(LoginRequiredMixin, ListView):
     context_object_name = 'devices'
 
     def get_queryset(self):
-        # AI Suggestion (LO8.3): prefetch_related to optimize N+1 query performance
         return Device.objects.prefetch_related('ip_addresses').all()
 
 class DeviceDetailView(LoginRequiredMixin, DetailView):
@@ -54,7 +97,7 @@ class DeviceCreateView(LoginRequiredMixin, TechOrManagerRequiredMixin, CreateVie
     success_url = reverse_lazy('device_list')
 
     def form_valid(self, form):
-        messages.success(self.request, f"Device {form.instance.hostname} successfully added to inventory.")
+        messages.success(self.request, f"Device {form.instance.hostname} successfully added.")
         return super().form_valid(form)
 
 class DeviceDeleteView(LoginRequiredMixin, ManagerRequiredMixin, DeleteView):
@@ -63,26 +106,25 @@ class DeviceDeleteView(LoginRequiredMixin, ManagerRequiredMixin, DeleteView):
 
     def delete(self, request, *args, **kwargs):
         device = self.get_object()
-        messages.warning(request, f"Device {device.hostname} has been removed from inventory.")
+        messages.warning(request, f"Device {device.hostname} decommissioned.")
         return super().delete(request, *args, **kwargs)
 
-# --- Ticket CRUD (LO2) ---
+# --- Ticket CRUD ---
 
 class TicketCreateView(LoginRequiredMixin, TechOrManagerRequiredMixin, CreateView):
     model = MaintenanceTicket
     fields = ['title', 'description', 'severity', 'device', 'assigned_to']
-    success_url = reverse_lazy('dashboard')
+    success_url = reverse_lazy('kanban_board') # Redirect back to Kanban after creation
 
     def form_valid(self, form):
         form.instance.created_by = self.request.user
-        # Custom Logic (LO1.4): If ticket is critical, automatically update device status
         if form.instance.severity == 'CRITICAL':
             device = form.instance.device
             device.status = 'MAINTENANCE'
             device.save()
-            messages.error(self.request, f"ALERT: Device {device.hostname} moved to MAINTENANCE due to critical ticket.")
+            messages.error(self.request, f"ALERT: {device.hostname} moved to MAINTENANCE status.")
         
-        messages.info(self.request, "Maintenance ticket created successfully.")
+        messages.info(self.request, "Ticket created successfully.")
         return super().form_valid(form)
 
 class TicketUpdateView(LoginRequiredMixin, TechOrManagerRequiredMixin, UpdateView):
@@ -91,8 +133,8 @@ class TicketUpdateView(LoginRequiredMixin, TechOrManagerRequiredMixin, UpdateVie
     template_name = 'inventory/ticket_form.html'
     
     def get_success_url(self):
-        return reverse_lazy('device_detail', kwargs={'pk': self.object.device.id})
+        return reverse_lazy('kanban_board')
 
     def form_valid(self, form):
-        messages.success(self.request, f"Ticket #{self.object.id} has been updated.")
+        messages.success(self.request, f"Ticket #{self.object.id} updated.")
         return super().form_valid(form)

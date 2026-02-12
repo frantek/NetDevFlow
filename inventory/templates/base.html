@@ -12,6 +12,8 @@
         :root {
             --primary-dark: #212529;
             --accent-blue: #0d6efd;
+            --kanban-bg: #f4f5f7;
+            --kanban-column-bg: #ebedf0;
         }
         body {
             background-color: #f8f9fa;
@@ -38,6 +40,64 @@
             font-weight: 600;
         }
         main { flex: 1; }
+
+        /* Kanban Specific Styles */
+        .kanban-board {
+            display: flex;
+            gap: 1.5rem;
+            overflow-x: auto;
+            padding-bottom: 1.5rem;
+            align-items: flex-start;
+        }
+        .kanban-column {
+            background-color: var(--kanban-column-bg);
+            border-radius: 10px;
+            min-width: 320px;
+            width: 320px;
+            display: flex;
+            flex-direction: column;
+            max-height: 85vh;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .kanban-header {
+            padding: 1.25rem;
+            font-weight: 700;
+            color: #444;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        .kanban-cards {
+            padding: 0.75rem;
+            flex-grow: 1;
+            overflow-y: auto;
+            min-height: 150px;
+        }
+        .kanban-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+            cursor: grab;
+            border-left: 5px solid #ccc;
+            transition: transform 0.1s ease;
+        }
+        .kanban-card:active { cursor: grabbing; }
+        .kanban-card:hover { transform: scale(1.02); }
+        
+        /* Card Priority Accents */
+        .kanban-card.critical { border-left-color: #dc3545; }
+        .kanban-card.warning { border-left-color: #ffc107; }
+        .kanban-card.low { border-left-color: #0dcaf0; }
+        .kanban-card.job { border-left-color: #6610f2; } /* Style for custom jobs */
+
+        .ghost-card {
+            opacity: 0.4;
+            background: #c8ced0;
+            border: 2px dashed #999;
+        }
     </style>
 </head>
 <body>
@@ -58,6 +118,11 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'device_list' %}">Inventory</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'kanban_board' %}">
+                            <i class="fas fa-columns me-1"></i> Kanban
+                        </a>
                     </li>
                 </ul>
                 <ul class="navbar-nav">
@@ -114,5 +179,7 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- SortableJS for Drag and Drop Kanban Functionality -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 </body>
 </html>
