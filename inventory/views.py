@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.urls import reverse_lazy
 from django.db.models import Count
 from django.http import JsonResponse
+from django.core.exceptions import ObjectDoesNotExist
 from .models import Device, IPAddress, MaintenanceTicket, Profile
 
 # --- Dashboard View ---
@@ -46,9 +47,12 @@ def update_ticket_status(request, pk):
     Handles AJAX POST requests to update ticket status via drag-and-drop.
     """
     if request.method == 'POST':
-        # Check permissions: Read-only users cannot move cards
-        if request.user.profile.role == 'READONLY':
-            return JsonResponse({'status': 'error', 'message': 'Permission denied'}, status=403)
+        # Defensive Check: Ensure profile exists before checking role
+        try:
+            if request.user.profile.role == 'READONLY':
+                return JsonResponse({'status': 'error', 'message': 'Permission denied: Read-only access'}, status=403)
+        except (ObjectDoesNotExist, AttributeError):
+            return JsonResponse({'status': 'error', 'message': 'User profile misconfigured'}, status=403)
 
         try:
             data = json.loads(request.body)
@@ -67,17 +71,25 @@ def update_ticket_status(request, pk):
             
     return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
 
-# --- Role-Based Access Mixins ---
+# --- Role-Based Access Mixins (LO3) ---
 
 class ManagerRequiredMixin(UserPassesTestMixin):
+    """Restricts access to users with the 'MANAGER' role. Defensive against missing profiles."""
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.profile.role == 'MANAGER'
+        try:
+            return self.request.user.is_authenticated and self.request.user.profile.role == 'MANAGER'
+        except (ObjectDoesNotExist, AttributeError):
+            return False
 
 class TechOrManagerRequiredMixin(UserPassesTestMixin):
+    """Restricts access to Technicians or Managers. Defensive against missing profiles."""
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.profile.role in ['TECHNICIAN', 'MANAGER']
+        try:
+            return self.request.user.is_authenticated and self.request.user.profile.role in ['TECHNICIAN', 'MANAGER']
+        except (ObjectDoesNotExist, AttributeError):
+            return False
 
-# --- Device CRUD ---
+# --- Device CRUD (LO2) ---
 
 class DeviceListView(LoginRequiredMixin, ListView):
     model = Device
@@ -109,12 +121,12 @@ class DeviceDeleteView(LoginRequiredMixin, ManagerRequiredMixin, DeleteView):
         messages.warning(request, f"Device {device.hostname} decommissioned.")
         return super().delete(request, *args, **kwargs)
 
-# --- Ticket CRUD ---
+# --- Ticket CRUD (LO2) ---
 
 class TicketCreateView(LoginRequiredMixin, TechOrManagerRequiredMixin, CreateView):
     model = MaintenanceTicket
     fields = ['title', 'description', 'severity', 'device', 'assigned_to']
-    success_url = reverse_lazy('kanban_board') # Redirect back to Kanban after creation
+    success_url = reverse_lazy('kanban_board')
 
     def form_valid(self, form):
         form.instance.created_by = self.request.user

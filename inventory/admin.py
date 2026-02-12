@@ -136,10 +136,16 @@ class ProfileInline(admin.StackedInline):
 
 class UserAdmin(BaseUserAdmin):
     """
-    Customized User Admin to show the Profile role inline, ensuring 
-    managers can audit user access levels within a single workflow.
+    Customized User Admin to prevent IntegrityErrors by only showing 
+    the Profile inline on the 'Change' page, not the 'Add' page.
     """
-    inlines = (ProfileInline,)
+    def get_inlines(self, request, obj=None):
+        # obj is None when creating a new user (Add page)
+        # obj is present when editing an existing user (Change page)
+        if obj:
+            return [ProfileInline]
+        return []
+
     list_display = ('username', 'email', 'first_name', 'last_name', 'get_role', 'is_staff')
     list_filter = ('profile__role', 'is_staff', 'is_superuser')
 
