@@ -1,0 +1,91 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | NetDevFlow Admin HQ{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<!-- Adding our signature casual vibe to the whole admin area -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    /* Premium dark header to match our main site */
+    #header {
+        background: #212529 !important;
+        color: #fff !important;
+        padding: 1rem 2rem !important;
+        border-bottom: 3px solid #0d6efd !important;
+    }
+
+    #branding h1 {
+        font-family: 'Segoe UI', sans-serif !important;
+        font-weight: 700 !important;
+        letter-spacing: -1px !important;
+        margin: 0 !important;
+        color: #fff !important;
+    }
+
+    #branding h1 a {
+        color: #fff !important;
+        text-decoration: none !important;
+    }
+
+    #branding h1::before {
+        content: "\f6ff"; /* FontAwesome Network Wired icon */
+        font-family: "Font Awesome 6 Free";
+        margin-right: 10px;
+        color: #0d6efd;
+    }
+
+    /* Making the sidebar and buttons look less like 1995 */
+    .module h2, .module caption, .inline-group h2 {
+        background: #f8f9fa !important;
+        color: #212529 !important;
+        border-bottom: 1px solid #dee2e6 !important;
+        font-weight: 600 !important;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+    }
+
+    .button, input[type=submit], input[type=button], .submit-row input, a.button {
+        background: #0d6efd !important;
+        border-radius: 6px !important;
+        padding: 8px 15px !important;
+        border: none !important;
+        font-weight: 600 !important;
+        transition: opacity 0.2s;
+    }
+
+    .button:hover { opacity: 0.9 !important; }
+
+    .button.default, input[type=submit].default {
+        background: #198754 !important; /* Success green for main save buttons */
+    }
+
+    #user-tools {
+        font-size: 0.85rem !important;
+        font-weight: 500 !important;
+    }
+
+    #user-tools a {
+        border-bottom: 1px solid rgba(255,255,255,0.2) !important;
+    }
+
+    /* Casual touch in the footer */
+    #footer {
+        color: #adb5bd !important;
+        font-size: 0.75rem !important;
+        margin-top: 2rem !important;
+    }
+</style>
+{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">
+    <a href="{% url 'admin:index' %}">NetDevFlow Admin HQ</a>
+</h1>
+{% endblock %}
+
+{% block nav-global %}
+<!-- You can add extra casual links here if you want -->
+{% endblock %}

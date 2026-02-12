@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Later! | NetDevFlow{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center" style="min-height: 65vh;">
+    <div class="col-md-6 text-center">
+        <!-- Iconic departure indicator -->
+        <div class="mb-4">
+            <i class="fas fa-door-open fa-6x text-primary opacity-75 animate-bounce-slow"></i>
+        </div>
+
+        <!-- Casual Header -->
+        <h1 class="display-4 fw-bold text-dark">Peace Out!</h1>
+        
+        <!-- Informal Message Body -->
+        <p class="lead text-muted mb-4">
+            You've officially bailed from the session. Don't sweat it though—everything's locked down tight and your data's safe. Catch ya on the flip side lol!
+        </p>
+
+        <!-- Quick Action Buttons -->
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+            <a href="{% url 'login' %}" class="btn btn-primary btn-lg px-4 gap-3 shadow-sm">
+                <i class="fas fa-sign-in-alt me-2"></i>Hop Back In
+            </a>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary btn-lg px-4">
+                <i class="fas fa-home me-2"></i>Just the Dashboard
+            </a>
+        </div>
+
+        <!-- Security Pro-Tip -->
+        <div class="mt-5 p-3 border rounded bg-light">
+            <small class="text-muted">
+                <i class="fas fa-shield-alt me-1"></i>
+                <strong>Quick Tip:</strong> If you're using a shared rig, you might wanna clear your browser cache just to be 100% sure everything's wiped, ya know?
+            </small>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Subtle bounce animation for the door icon */
+    @keyframes bounce-slow {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+    .animate-bounce-slow { animation: bounce-slow 3s infinite ease-in-out; }
+</style>
+
+{% endblock %}

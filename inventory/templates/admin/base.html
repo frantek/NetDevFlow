@@ -1,0 +1,58 @@
+{% extends "admin/base.html" %}
+<!-- 
+    Yo! If you're seeing this, it's because you wanted a custom base for the admin.
+    Since admin/base.html is usually hidden deep in Django's guts, 
+    creating this file in your project's templates folder overrides it.
+    
+    We're gonna keep it simple and just use it to wrap everything in our site's vibe.
+-->
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Making the sidebar a bit wider and more readable */
+    #content-related {
+        margin-right: -300px !important;
+        width: 280px !important;
+    }
+
+    /* Giving the main content some room to breathe */
+    #content {
+        padding: 30px 40px !important;
+    }
+
+    /* Modernizing the object tools (Add button, etc) */
+    .object-tools a {
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+    }
+
+    /* Fixing up the breadcrumbs to match the casual look */
+    .breadcrumbs {
+        background: #f0f2f5 !important;
+        padding: 10px 40px !important;
+        border-bottom: 1px solid #e0e0e0 !important;
+        font-size: 0.85rem !important;
+        color: #666 !important;
+    }
+
+    .breadcrumbs a {
+        color: #0d6efd !important;
+        font-weight: 600 !important;
+    }
+</style>
+{% endblock %}
+
+{% block footer %}
+<div id="footer">
+    <div class="container text-center">
+        <p class="mb-0">
+            <strong>NetDevFlow Admin HQ</strong> | 
+            Running on Django power and vibes lol. 
+            Keep the servers happy! 🚀
+        </p>
+    </div>
+</div>
+{% endblock %}
