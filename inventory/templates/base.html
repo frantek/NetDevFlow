@@ -42,10 +42,10 @@
 </head>
 <body>
 
-    <!-- Global Navigation (LO1.1 & LO3) -->
+    <!-- Global Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow">
         <div class="container">
-            <a class="navbar-brand" href="{{ url('dashboard') }}">
+            <a class="navbar-brand" href="{% url 'dashboard' %}">
                 <i class="fas fa-network-wired me-2"></i>NetDevFlow
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -54,25 +54,25 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url('dashboard') }}">Dashboard</a>
+                        <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url('device_list') }}">Inventory</a>
+                        <a class="nav-link" href="{% url 'device_list' %}">Inventory</a>
                     </li>
                 </ul>
                 <ul class="navbar-nav">
-                    {% if request.user.is_authenticated %}
+                    {% if user.is_authenticated %}
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-user-circle me-1"></i>{{ request.user.username }} 
-                                <span class="badge bg-primary ms-1">{{ request.user.profile.role }}</span>
+                                <i class="fas fa-user-circle me-1"></i>{{ user.username }} 
+                                <span class="badge bg-primary ms-1">{{ user.profile.role }}</span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end shadow">
-                                <li><a class="dropdown-item" href="{{ url('admin:index') }}">Admin Backend</a></li>
+                                <li><a class="dropdown-item" href="{% url 'admin:index' %}">Admin Backend</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
-                                    <form method="post" action="{{ url('logout') }}">
-                                        {{ csrf_token }}
+                                    <form method="post" action="{% url 'logout' %}">
+                                        {% csrf_token %}
                                         <button type="submit" class="dropdown-item border-0 bg-transparent w-100 text-start">Logout</button>
                                     </form>
                                 </li>
@@ -80,7 +80,7 @@
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="btn btn-outline-light btn-sm px-3" href="{{ url('login') }}">Login</a>
+                            <a class="btn btn-outline-light btn-sm px-3" href="{% url 'login' %}">Login</a>
                         </li>
                     {% endif %}
                 </ul>
@@ -88,14 +88,16 @@
         </div>
     </nav>
 
-    <!-- Message Alerts (LO2.3) -->
+    <!-- Message Alerts -->
     <div class="container mt-3">
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        {% endfor %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
     </div>
 
     <!-- Main Content Area -->
@@ -106,7 +108,7 @@
     <!-- Footer -->
     <footer class="footer mt-auto py-3 bg-white border-top">
         <div class="container text-center">
-            <span class="text-muted small">© 2024 NetDevFlow Infrastructure Management</span>
+            <span class="text-muted small">© 2026 NetDevFlow Infrastructure Management</span>
         </div>
     </footer>
 
