@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Login | NetDevFlow{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center" style="min-height: 70vh;">
+    <div class="col-md-5 col-lg-4">
+        <div class="text-center mb-4">
+            <h1 class="fw-bold"><i class="fas fa-network-wired text-primary me-2"></i>NetDevFlow</h1>
+            <p class="text-muted">Infrastructure Management Access</p>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <form method="post">
+                    {{ csrf_token }}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger small">
+                            {{ form.non_field_errors|join(', ') }}
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label for="id_username" class="form-label small text-uppercase fw-bold">Username</label>
+                        <input type="text" name="username" class="form-control" id="id_username" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="id_password" class="form-label small text-uppercase fw-bold">Password</label>
+                        <input type="password" name="password" class="form-control" id="id_password" required>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">Sign In</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="text-center mt-4">
+            <p class="text-muted small">Access restricted to authorized network technicians and managers.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

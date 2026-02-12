@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | NetDevFlow{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2 class="fw-bold">Network Overview</h2>
+        <p class="text-muted">Real-time status of managed hardware and critical tasks.</p>
+    </div>
+    <div class="col-md-4 text-md-end">
+        {% if request.user.profile.role != 'READONLY' %}
+            <a href="{{ url('device_create') }}" class="btn btn-primary shadow-sm me-2">
+                <i class="fas fa-plus me-1"></i> Add Device
+            </a>
+            <a href="{{ url('ticket_create') }}" class="btn btn-warning shadow-sm">
+                <i class="fas fa-ticket me-1"></i> New Ticket
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Stats Row -->
+<div class="row g-4 mb-5">
+    <div class="col-md-4">
+        <div class="card stats-card bg-white shadow-sm h-100 border-start border-4 border-success">
+            <div class="card-body">
+                <h6 class="text-uppercase text-muted small fw-bold">Online Devices</h6>
+                <div class="d-flex align-items-center">
+                    <h2 class="mb-0 me-3">{{ online_count }}</h2>
+                    <div class="progress flex-grow-1" style="height: 8px;">
+                        {% set percent = (online_count / total_devices * 100) if total_devices > 0 else 0 %}
+                        <div class="progress-bar bg-success" style="width: {{ percent }}%"></div>
+                    </div>
+                </div>
+                <p class="card-text small text-muted mt-2">Total assets: {{ total_devices }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stats-card bg-white shadow-sm h-100 border-start border-4 border-danger">
+            <div class="card-body">
+                <h6 class="text-uppercase text-muted small fw-bold">Critical Outages</h6>
+                <div class="d-flex align-items-center">
+                    <h2 class="mb-0 me-3">{{ critical_tickets }}</h2>
+                    <div class="progress flex-grow-1" style="height: 8px;">
+                        <div class="progress-bar bg-danger" style="width: 25%"></div>
+                    </div>
+                </div>
+                <p class="card-text small text-muted mt-2">Open tickets requiring action.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stats-card bg-white shadow-sm h-100 border-start border-4 border-info">
+            <div class="card-body">
+                <h6 class="text-uppercase text-muted small fw-bold">Recent Updates</h6>
+                <h2 class="mb-0">{{ recent_tickets.count() }}</h2>
+                <p class="card-text small text-muted mt-2">Incidents logged recently.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity Table -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0 fw-bold">Recent Maintenance Activity</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Ticket ID</th>
+                        <th>Device</th>
+                        <th>Severity</th>
+                        <th>Status</th>
+                        <th>Updated At</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in recent_tickets %}
+                    <tr>
+                        <td class="fw-bold text-primary">#{{ ticket.id }}</td>
+                        <td>{{ ticket.device.hostname }}</td>
+                        <td>
+                            {% if ticket.severity == 'CRITICAL' %}
+                                <span class="badge bg-danger">Critical</span>
+                            {% elif ticket.severity == 'WARNING' %}
+                                <span class="badge bg-warning text-dark">Warning</span>
+                            {% else %}
+                                <span class="badge bg-info">Low</span>
+                            {% endif %}
+                        </td>
+                        <td><span class="status-badge">{{ ticket.status }}</span></td>
+                        <td class="small text-muted">{{ ticket.updated_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td class="text-end">
+                            <a href="{{ url('ticket_update', args=[ticket.id]) }}" class="btn btn-outline-secondary btn-sm">Update</a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">No recent maintenance activity found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

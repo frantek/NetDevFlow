@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}{{ device.hostname }} | NetDevFlow{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url('device_list') }}">Inventory</a></li>
+        <li class="breadcrumb-item active">{{ device.hostname }}</li>
+    </ol>
+</nav>
+
+<div class="row g-4">
+    <!-- Specifications & Detail (Wireframe 4.3) -->
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold">Device Specifications</h5>
+                <span class="badge {% if device.status == 'ONLINE' %}bg-success{% elif device.status == 'MAINTENANCE' %}bg-warning{% else %}bg-secondary{% endif %}">
+                    {{ device.get_status_display() }}
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">Hostname</div>
+                    <div class="col-sm-8 fw-bold">{{ device.hostname }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">Model</div>
+                    <div class="col-sm-8">{{ device.model_name }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">Device Type</div>
+                    <div class="col-sm-8">{{ device.get_device_type_display() }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">Physical Location</div>
+                    <div class="col-sm-8"><i class="fas fa-map-marker-alt me-2 text-danger"></i>{{ device.location }}</div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-4 text-muted">Last Updated</div>
+                    <div class="col-sm-8 small">{{ device.updated_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Maintenance History (LO7 Relationship) -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-bold">Maintenance History</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Ticket Title</th>
+                                <th>Severity</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ticket in device.tickets.all() %}
+                            <tr>
+                                <td class="small">{{ ticket.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    <a href="{{ url('ticket_update', args=[ticket.id]) }}" class="text-decoration-none">
+                                        {{ ticket.title }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <span class="badge {% if ticket.severity == 'CRITICAL' %}bg-danger{% else %}bg-secondary{% endif %} small">
+                                        {{ ticket.severity }}
+                                    </span>
+                                </td>
+                                <td>{{ ticket.status }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted small">No maintenance records for this asset.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- IP Allocations (Wireframe 4.3 Sidebar) -->
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-bold">Assigned IP Addresses</h5>
+            </div>
+            <ul class="list-group list-group-flush">
+                {% for ip in device.ip_addresses.all() %}
+                <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                    <div>
+                        <code class="h6 text-primary mb-0">{{ ip.address }}</code>
+                        <div class="small text-muted">Mask: {{ ip.subnet_mask }}</div>
+                    </div>
+                    {% if ip.is_primary %}
+                        <span class="badge bg-primary rounded-pill">Primary</span>
+                    {% endif %}
+                </li>
+                {% else %}
+                <li class="list-group-item text-center py-4 text-muted">No IP addresses allocated.</li>
+                {% endfor %}
+            </ul>
+            {% if request.user.profile.role != 'READONLY' %}
+            <div class="card-footer bg-white border-0 py-3">
+                <a href="{{ url('admin:inventory_ipaddress_add') }}" class="btn btn-outline-primary btn-sm w-100">
+                    <i class="fas fa-network-wired me-1"></i> Manage IP Allocations
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Quick Actions Context Menu (LO3) -->
+        {% if request.user.profile.role != 'READONLY' %}
+        <div class="card border-0 shadow-sm bg-dark text-white">
+            <div class="card-body">
+                <h6 class="fw-bold mb-3 text-uppercase small" style="letter-spacing: 1px;">Admin Operations</h6>
+                <div class="d-grid gap-2">
+                    <a href="{{ url('ticket_create') }}?device={{ device.id }}" class="btn btn-warning">
+                        <i class="fas fa-tools me-2"></i> Log New Incident
+                    </a>
+                    {% if request.user.profile.role == 'MANAGER' %}
+                        <a href="{{ url('device_delete', args=[device.id]) }}" class="btn btn-outline-danger">
+                            <i class="fas fa-trash-alt me-2"></i> Decommission Device
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

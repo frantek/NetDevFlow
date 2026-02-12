@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Decommission {{ object.hostname }} | NetDevFlow{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-5">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-lg text-center">
+            <div class="card-body p-5">
+                <div class="mb-4">
+                    <i class="fas fa-exclamation-triangle fa-4x text-danger animate-pulse"></i>
+                </div>
+                <h2 class="fw-bold mb-3">Decommission Asset?</h2>
+                <p class="text-muted mb-4">
+                    Are you sure you want to permanently delete <strong>{{ object.hostname }}</strong> from the network inventory? This action will also purge all associated IP addresses and maintenance logs.
+                </p>
+                
+                <form method="post">
+                    {{ csrf_token }}
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger btn-lg">Confirm Deletion</button>
+                        <a href="{{ url('device_detail', args=[object.id]) }}" class="btn btn-light">Cancel and Return</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes pulse {
+        0% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.7; transform: scale(1.05); }
+        100% { opacity: 1; transform: scale(1); }
+    }
+    .animate-pulse { animation: pulse 2s infinite ease-in-out; }
+</style>
+{% endblock %}
