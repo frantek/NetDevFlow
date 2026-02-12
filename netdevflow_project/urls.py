@@ -27,3 +27,5 @@ urlpatterns = [
     # Authentication (Standard Django Auth for Login/Logout)
     path('accounts/', include('django.contrib.auth.urls')),
 ]
+handler403 = 'inventory.views.error_403'
+handler500 = 'inventory.views.error_500'

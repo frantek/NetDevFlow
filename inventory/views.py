@@ -150,3 +150,13 @@ class TicketUpdateView(LoginRequiredMixin, TechOrManagerRequiredMixin, UpdateVie
     def form_valid(self, form):
         messages.success(self.request, f"Ticket #{self.object.id} updated.")
         return super().form_valid(form)
+
+# --- Custom Error Handlers (LO1.1 & UX Enhancement) ---
+
+def error_403(request, exception=None):
+    """Custom 403 Forbidden error page."""
+    return render(request, '403.html', status=403)
+
+def error_500(request):
+    """Custom 500 Internal Server Error page."""
+    return render(request, '500.html', status=500)

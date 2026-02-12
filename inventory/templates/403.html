@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}403 Forbidden | NetDevFlow{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center align-items-center" style="min-height: 60vh;">
+<div class="col-md-6 text-center">
+<div class="mb-4">
+<i class="fas fa-user-shield fa-6x text-danger opacity-75"></i>
+</div>
+<h1 class="display-4 fw-bold text-dark">Whoops! No Entry.</h1>
+<p class="lead text-muted mb-4">
+Yo, my bad! But looks like your current rank (<strong>{{ user.profile.role }}</strong>) isn't high enough to get in here. You're just not on the VIP list for this one lol.
+</p>
+<div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+<a href="{% url 'dashboard' %}" class="btn btn-primary btn-lg px-4 gap-3 shadow-sm">
+<i class="fas fa-home me-2"></i>Head Back Home
+</a>
+<a href="javascript:history.back()" class="btn btn-outline-secondary btn-lg px-4">
+<i class="fas fa-arrow-left me-2"></i>Let's Bail
+</a>
+</div>
+<div class="mt-5 p-3 border rounded bg-light">
+<small class="text-muted">
+<i class="fas fa-info-circle me-1"></i>
+Think this is a total mistake? Hit up a <strong>Big Boss (Infrastructure Manager)</strong> to level up your account stats.
+</small>
+</div>
+</div>
+</div>
+{% endblock %}

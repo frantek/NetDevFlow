@@ -1,0 +1,84 @@
+% extends 'base.html' %}
+
+{% block title %}Bummer! Server's Toast | NetDevFlow{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center align-items-center" style="min-height: 75vh;">
+<div class="col-md-8 col-lg-6 text-center">
+<!-- Visual Indicator with Animation -->
+<div class="mb-4">
+<i class="fas fa-server fa-6x text-secondary opacity-50 animate-pulse"></i>
+</div>
+
+    <!-- Primary Error Header -->
+    <h1 class="display-4 fw-bold text-dark">Oops! Everything's Broken.</h1>
+    
+    <!-- Expanded Explanation -->
+    <p class="lead text-muted mb-4">
+        Yo, the server just straight up gave up. It hit a massive snag it didn't know how to handle—maybe the DB timed out, things got way too crowded, or it just had a total brain fart lol. 
+    </p>
+
+    <!-- Automated Notification Context -->
+    <div class="p-3 mb-4 rounded bg-light border text-start">
+        <h6 class="fw-bold"><i class="fas fa-satellite-dish me-2 text-primary"></i>So, what now?</h6>
+        <p class="small text-muted mb-0">
+            Don't sweat it! You don't gotta report this or anything. Our bots already caught the mess and logged all the receipts. The tech crew got buzzed on their pagers and are probably already diving in to fix the vibe and get things back on track.
+        </p>
+    </div>
+
+    <!-- Troubleshooting & Guidance -->
+    <div class="row text-start mb-4 g-3">
+        <div class="col-sm-6">
+            <div class="small fw-bold text-uppercase text-muted mb-2">Stuff you can try:</div>
+            <ul class="small text-muted ps-3">
+                <li>Give it a hard refresh (Ctrl + F5).</li>
+                <li>Chill for 60 secs and try again.</li>
+                <li>Peep the status page for outages.</li>
+            </ul>
+        </div>
+        <div class="col-sm-6">
+            <div class="small fw-bold text-uppercase text-muted mb-2">The Nerdy Bits:</div>
+            <div class="alert alert-warning py-2 border-0 shadow-sm d-inline-block w-100 mb-0">
+                <i class="fas fa-tools me-2"></i>
+                <strong class="small">HTTP Oof:</strong> <span class="small">500 Server Meltdown</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+        <a href="{% url 'dashboard' %}" class="btn btn-dark btn-lg px-5 shadow">
+            <i class="fas fa-redo me-2"></i>Try Again
+        </a>
+        <a href="javascript:history.back()" class="btn btn-outline-secondary btn-lg px-4">
+            <i class="fas fa-arrow-left me-2"></i>Peace Out
+        </a>
+    </div>
+
+    <!-- Footer Audit Note -->
+    <div class="mt-5 pt-3 border-top">
+        <p class="text-muted tiny">
+            Clock says: {% now "Y-m-d H:i:s" %} UTC | ID thingy: <code class="text-primary">{{ request.id|default:"AUTOGEN-ERR-99" }}</code>
+        </p>
+    </div>
+</div>
+
+
+</div>
+
+<style>
+/* Technical Fade/Pulse Animation for the Server Icon */
+@keyframes pulse {
+0% { opacity: 0.5; transform: scale(1); }
+50% { opacity: 0.2; transform: scale(0.97); }
+100% { opacity: 0.5; transform: scale(1); }
+}
+.animate-pulse { animation: pulse 3s infinite ease-in-out; }
+
+.tiny { font-size: 0.75rem; }
+
+
+</style>
+
+{% endblock %}
