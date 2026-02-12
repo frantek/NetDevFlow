@@ -121,16 +121,59 @@ The UI follows a "Mobile-First" philosophy, specifically designed for technician
 | \> SRV-DB-02: Fixed    |  
 \+-----------------------+
 ```
-## **5\. Database Schema (LO7)**
+## **5\. Database Design (LO7)**
 
-The database architecture is designed to enforce referential integrity, ensuring that no orphan tickets or unassigned IPs can exist without a corresponding device.
+The database architecture is designed to enforce referential integrity and support multi-tenant maintenance workflows. It ensures that no orphan tickets or unassigned IPs can exist without a corresponding valid hardware asset.
+
+### **5.1 Entity Relationship Diagram (ERD)**
+
+erDiagram  
+    USER ||--|| PROFILE : "has"  
+    USER ||--o{ TICKET : "creates/assigned"  
+    DEVICE ||--o{ IPADDRESS : "assigned\_to"  
+    DEVICE ||--o{ TICKET : "logs"
+
+    USER {  
+        string username  
+        string password  
+        string email  
+    }
+
+    PROFILE {  
+        string role "Manager, Tech, ReadOnly"  
+    }
+
+    DEVICE {  
+        string hostname "PK, Unique"  
+        string model\_name  
+        string device\_type  
+        string status "Online, Offline, Maint"  
+        string location  
+        datetime created\_at  
+    }
+
+    IPADDRESS {  
+        string address "Unique"  
+        string subnet\_mask  
+        boolean is\_primary  
+    }
+
+    TICKET {  
+        string title  
+        text description  
+        string severity "Low, Warning, Critical"  
+        string status "Open, Progress, Resolved"  
+        datetime created\_at  
+    }
+
+### **5.2 Schema Details**
 
 | Model | Fields | Relationship | Technical Justification |
 | :---- | :---- | :---- | :---- |
 | **User** | username, role, is\_staff | \- | Extends Django Auth to support Granular Role-Based Access Control (RBAC). |
 | **Device** | hostname, model, type, status, location | \- | The central node of the schema; acts as the primary parent for all metadata. |
-| **IPAddress** | address, subnet, device, is\_active | ForeignKey(Device) | Uses a ForeignKey to allow one device to hold multiple IP interfaces (e.g., Management and Production). |
-| **Ticket** | title, severity, status, description, device | ForeignKey(Device) | Establishes a permanent audit trail for hardware; tickets cannot be deleted without record. |
+| **IPAddress** | address, subnet, device, is\_active | ForeignKey(Device) | Uses a One-to-Many relationship, allowing one device (like a multi-homed server) to hold multiple IP interfaces. |
+| **Ticket** | title, severity, status, description, device | ForeignKey(Device) | Establishes a permanent audit trail for hardware; tickets cannot be deleted without record, satisfying compliance needs. |
 
 ## **6\. AI Reflection (LO8)**
 
