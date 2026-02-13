@@ -269,7 +269,8 @@
 <!-- Theme Logic Script -->
 <script>
     (function() {
-        const savedTheme = localStorage.getItem('admin-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        // Unified key 'site-theme' so it works everywhere lol
+        const savedTheme = localStorage.getItem('site-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
         document.documentElement.setAttribute('data-theme', savedTheme);
     })();
 
@@ -286,7 +287,7 @@
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             
             document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('admin-theme', newTheme);
+            localStorage.setItem('site-theme', newTheme);
             toggleBtn.innerHTML = newTheme === 'dark' ? '☀️' : '🌙';
         });
     });
