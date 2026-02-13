@@ -1,135 +1,316 @@
 {% extends "admin/base.html" %}
 {# 
-    Yo! Welcome to the secret sauce of the Admin HQ. 
-    Usually, this file is hidden deep in the Django guts, like some ancient scrolls lol. 
-    By overriding it here, we're basically hijacking the whole look to make it not suck.
+    YO! WELCOME TO THE ULTIMATE SECRET SAUCE OF THE ADMIN HQ! 🚀
     
-    CRITICAL VIBE CHECK: 
-    We gotta make sure this is the ONLY file named base.html in the admin folder, 
-    otherwise Django is gonna get confused and start chasing its own tail (infinite recursion), 
-    which would totally wreck the site. Nobody wants that brain fart.
+    Listen, usually this file is buried so deep in the Django guts it's like trying to find
+    some ancient, dusty scrolls in a forbidden library lol. But we're built different.
+    By overriding it here, we're basically hijacking the whole look to make sure it 
+    doesn't look like a boring spreadsheet from 1995.
+    
+    CRITICAL VIBE CHECK (DO NOT IGNORE): 
+    We gotta make sure this is the ONLY file named base.html in the admin folder. 
+    If you double up, Django is gonna get super confused and start chasing its own tail 
+    in a loop (infinite recursion). That's a total brain fart that'll wreck the site. 
+    Keep it clean, keep it simple, keep it casual.
 #}
 
 {% block extrastyle %}
 {{ block.super }}
 <style>
-    /* THE BRAIN CENTER: Global Admin UI Tweaks 
-       We're making the admin area actually feel like a command center for the Big Boss.
-       Standard Django is way too cramped, so we're giving it some room to breathe.
+    /* --- THE THEME ENGINE: DYNAMIC VIBES ---
+       We're setting up CSS variables so the Big Boss can switch between 
+       Light and Dark modes without the UI breaking. It's all about that 
+       adaptive infrastructure lol.
     */
+    :root {
+        --bg-body: #f4f7f6;
+        --bg-content: #ffffff;
+        --bg-sidebar: #ffffff;
+        --bg-breadcrumbs: #ffffff;
+        --bg-footer: #ffffff;
+        --text-main: #333333;
+        --text-muted: #888888;
+        --border-color: #eeeeee;
+        --table-header-bg: #2c3e50;
+        --table-header-text: #ecf0f1;
+        --table-hover: #f1f6ff;
+        --card-shadow: rgba(0,0,0,0.03);
+        --toggle-bg: #212529;
+        --toggle-color: #ffffff;
+    }
+
+    /* Manual Dark Mode Override via data-theme attribute */
+    [data-theme="dark"] {
+        --bg-body: #121416;
+        --bg-content: #1a1d21;
+        --bg-sidebar: #1a1d21;
+        --bg-breadcrumbs: #1a1d21;
+        --bg-footer: #1a1d21;
+        --text-main: #e1e1e1;
+        --text-muted: #b0b0b0; /* Slightly brighter for dark mode readability */
+        --border-color: #2d3238;
+        --table-header-bg: #000000;
+        --table-header-text: #ffffff;
+        --table-hover: #24282d;
+        --card-shadow: rgba(0,0,0,0.3);
+        --toggle-bg: #f8f9fa;
+        --toggle-color: #212529;
+    }
+
+    /* --- THE BRAIN CENTER: GLOBAL ADMIN UI TWEAKS --- */
     
+    body {
+        background-color: var(--bg-body) !important;
+        color: var(--text-main) !important;
+        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Floating Theme Toggle Styling */
+    .theme-toggle-btn {
+        position: fixed;
+        bottom: 25px;
+        right: 25px;
+        width: 50px;
+        height: 50px;
+        background: var(--toggle-bg);
+        color: var(--toggle-color);
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        z-index: 9999;
+        transition: transform 0.2s ease, background-color 0.3s ease;
+    }
+
+    .theme-toggle-btn:hover {
+        transform: scale(1.1);
+    }
+
+    /* THE SIDEBAR: Making it look like a real nav tool */
     #content-related {
-        /* Pushing the sidebar out a bit so it's not squishing the main stuff */
         margin-right: -300px !important;
-        width: 280px !important;
-        background: #fdfdfd !important;
-        border-radius: 12px !important;
-        padding: 15px !important;
-        box-shadow: -2px 0 10px rgba(0,0,0,0.02) !important;
+        width: 290px !important;
+        background: var(--bg-sidebar) !important;
+        border-radius: 15px !important;
+        padding: 20px !important;
+        box-shadow: -5px 0 20px var(--card-shadow) !important;
+        border: 1px solid var(--border-color) !important;
+        color: var(--text-main) !important;
     }
 
+    #content-related .module h2 {
+        background: var(--bg-body) !important;
+        color: var(--text-muted) !important;
+        border-radius: 8px 8px 0 0 !important;
+        font-size: 0.7rem !important;
+        letter-spacing: 1.5px !important;
+    }
+
+    /* THE MAIN STAGE: Where the data magic happens */
     #content {
-        /* Giving the main data blocks some serious elbow room lol */
-        padding: 40px 60px !important;
-        background: #ffffff !important;
-        border-radius: 20px 0 0 0 !important;
+        padding: 45px 70px !important;
+        background: var(--bg-content) !important;
+        border-radius: 25px 0 0 0 !important;
+        box-shadow: inset 5px 5px 15px rgba(0,0,0,0.01) !important;
+        min-height: 80vh !important;
+        color: var(--text-main) !important;
     }
 
-    /* BUTTON VIBES: Making stuff actually look clickable.
-       The default buttons look like they're from 1995, so we're juicing them up.
-    */
+    /* --- BUTTON VIBES: ACTION TIME --- */
     .object-tools a {
         background: #0d6efd !important;
-        border-radius: 10px !important;
-        font-weight: 700 !important;
+        border-radius: 12px !important;
+        font-weight: 800 !important;
         text-transform: uppercase;
-        font-size: 0.8rem;
-        letter-spacing: 0.5px;
-        transition: all 0.3s ease !important;
+        font-size: 0.85rem;
+        letter-spacing: 0.8px;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
         border: none !important;
-        padding: 10px 20px !important;
+        padding: 12px 24px !important;
+        color: white !important;
+        display: inline-block !important;
     }
 
     .object-tools a:hover {
         background: #0b5ed7 !important;
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3) !important;
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 8px 20px rgba(13, 110, 253, 0.4) !important;
     }
 
-    /* BREADCRUMB TRAIL: For when we're deep in the weeds.
-       We want these to be super chill and easy to read so we don't get lost in the DB.
-    */
+    .object-tools a.addlink::before {
+        content: "\f067"; /* Plus icon */
+        font-family: "Font Awesome 6 Free";
+        margin-right: 8px;
+    }
+
+    /* --- BREADCRUMB TRAIL: DON'T GET LOST --- */
     .breadcrumbs {
-        background: #f0f2f5 !important;
-        padding: 15px 40px !important;
-        border-bottom: 2px solid #e9ecef !important;
-        font-size: 0.9rem !important;
-        color: #6c757d !important;
+        background: var(--bg-breadcrumbs) !important;
+        padding: 18px 45px !important;
+        border-bottom: 2px solid var(--border-color) !important;
+        font-size: 0.95rem !important;
+        color: var(--text-muted) !important;
         font-weight: 500;
+        margin-bottom: 0 !important;
     }
 
     .breadcrumbs a {
         color: #0d6efd !important;
         font-weight: 700 !important;
         text-decoration: none !important;
+        transition: color 0.2s ease;
     }
 
     .breadcrumbs a:hover {
+        color: #0044cc !important;
         text-decoration: underline !important;
     }
 
-    /* TABLE SWAG: Making the data lists look premium.
-       Adding some hover effects so we know exactly what row we're messing with.
-    */
+    /* --- TABLE SWAG: DATA LISTS FOR PROS --- */
+    #changelist {
+        border: none !important;
+        background: transparent !important;
+    }
+
+    #changelist table {
+        border-radius: 12px !important;
+        overflow: hidden !important;
+        border: 1px solid var(--border-color) !important;
+        background: var(--bg-content) !important;
+    }
+
+    #changelist table tbody tr {
+        transition: background-color 0.15s ease !important;
+        border-bottom: 1px solid var(--border-color) !important;
+    }
+
     #changelist table tbody tr:hover {
-        background-color: #f8f9ff !important;
+        background-color: var(--table-hover) !important;
+        cursor: pointer;
+    }
+
+    #changelist table tbody td, #changelist table tbody th {
+        color: var(--text-main) !important;
+        border-bottom: 1px solid var(--border-color) !important;
     }
 
     .results table thead th {
-        background: #212529 !important;
-        color: white !important;
+        background: var(--table-header-bg) !important;
+        color: var(--table-header-text) !important;
         text-transform: uppercase;
-        font-size: 0.75rem;
-        letter-spacing: 1px;
+        font-size: 0.7rem;
+        letter-spacing: 1.2px;
+        padding: 15px !important;
         border: none !important;
     }
+
+    .results table thead th a {
+        color: var(--table-header-text) !important;
+    }
     
-    /* THE CHILL ZONE: Custom Footer Style 
-       Even the bottom of the page needs some love. 
-       We're keeping it clean and centered so it feels professional but relaxed.
-    */
+    /* --- THE CHILL ZONE: CUSTOM FOOTER --- */
     #footer {
-        background: #f8f9fa !important;
-        color: #adb5bd !important;
-        padding: 30px !important;
-        border-top: 1px solid #dee2e6 !important;
+        background: var(--bg-footer) !important;
+        color: var(--text-muted) !important;
+        padding: 40px !important;
+        border-top: 1px solid var(--border-color) !important;
         text-align: center !important;
         font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+
+    /* Making sure the text inside the footer stays readable in dark mode */
+    #footer p {
+        color: var(--text-muted) !important;
     }
 
     #footer strong {
-        color: #495057;
+        color: var(--text-main) !important;
+        font-weight: 700;
+    }
+
+    /* Force the .text-muted class inside the footer to use our variable */
+    #footer .text-muted {
+        color: var(--text-muted) !important;
+    }
+
+    .badge-system {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.65rem;
+        text-transform: uppercase;
+    }
+
+    /* Misc tweaks for dark mode compatibility */
+    #changelist-filter h2 {
+        background: var(--table-header-bg) !important;
+        color: var(--table-header-text) !important;
+    }
+    #changelist-filter {
+        border-left: 1px solid var(--border-color) !important;
+        background: var(--bg-sidebar) !important;
+    }
+    #changelist-filter ul li.selected a {
+        color: #0d6efd !important;
+    }
+
+    /* Hiding the default Django 4.x+ theme switcher button in the header */
+    #header .theme-toggle {
+        display: none !important;
     }
 </style>
+
+<!-- Theme Logic Script -->
+<script>
+    (function() {
+        const savedTheme = localStorage.getItem('admin-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const toggleBtn = document.createElement('button');
+        toggleBtn.className = 'theme-toggle-btn';
+        toggleBtn.setAttribute('title', 'Switch Vibe');
+        toggleBtn.innerHTML = document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
+        
+        document.body.appendChild(toggleBtn);
+
+        toggleBtn.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('admin-theme', newTheme);
+            toggleBtn.innerHTML = newTheme === 'dark' ? '☀️' : '🌙';
+        });
+    });
+</script>
 {% endblock %}
 
 {% block footer %}
 {# 
-    Gonna override the footer here to put our own custom stamp on things. 
-    It's all about that NetDevFlow brand lol.
+    Gonna hijack the footer here to put our own custom stamp on things. 
+    It's all about that NetDevFlow brand identity lol.
 #}
 <div id="footer">
     <div class="container">
-        <p class="mb-1">
+        <p class="mb-2">
             <strong>NetDevFlow Admin HQ</strong> — The Big Boss Command Center
         </p>
-        <p class="mb-0 text-muted">
-            Logged in and runnin' on pure Django power and good vibes lol. 
-            Don't forget to keep the servers happy! 🚀
+        <p class="mb-3">
+            You're currently logged in and runnin' the show on pure Django power and top-tier vibes lol. 
+            Remember: with great power comes great responsibility... but also cool icons. 🚀
         </p>
-        <div class="mt-3 small">
-            <span class="badge bg-secondary opacity-50">System Mode: Alpha</span>
-            <span class="ms-2">Internal Use Only — Peace Out!</span>
+        <div class="d-flex justify-content-center align-items-center gap-3 mt-4">
+            <span class="badge bg-dark badge-system text-white">System: Alpha-V2</span>
+            <span class="badge bg-primary badge-system text-white">Mode: Big Boss</span>
+            <span class="small">Internal Use Only — Peace Out! ✌️</span>
         </div>
     </div>
 </div>
