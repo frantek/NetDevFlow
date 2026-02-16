@@ -1,272 +1,286 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}NetDevFlow{% endblock %}</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}NetDevFlow{% endblock %}</title>
+
+<!-- Bootstrap 5 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+    /* --- THE THEME ENGINE: SITE-WIDE VIBES --- 
+       We're using CSS variables so everything from the dashboard 
+       to the login page respects the Big Boss's chosen vibe lol.
+    */
+    :root {
+        --bg-body: #f8f9fa;
+        --bg-card: #ffffff;
+        --bg-nav: #212529;
+        --text-main: #212529;
+        --text-muted: #6c757d;
+        --border-color: #dee2e6;
+        --accent-primary: #0d6efd;
+        --toggle-bg: #212529;
+        --toggle-color: #ffffff;
+        --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+        --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+        
+        /* Stats Colors */
+        --stats-success-bg: rgba(25, 135, 84, 0.05);
+        --stats-danger-bg: rgba(220, 53, 69, 0.05);
+        --stats-info-bg: rgba(13, 202, 240, 0.05);
+        --stats-success-text: #198754;
+        --stats-danger-text: #dc3545;
+        --stats-info-text: #0dcaf0;
+    }
+
+    [data-theme="dark"] {
+        --bg-body: #121416;
+        --bg-card: #1a1d21;
+        --bg-nav: #000000;
+        --text-main: #e1e1e1;
+        --text-muted: #adb5bd;
+        --border-color: #2d3238;
+        --accent-primary: #3d8bfd;
+        --toggle-bg: #f8f9fa;
+        --toggle-color: #212529;
+        --shadow-sm: 0 2px 4px rgba(0,0,0,0.3);
+        --shadow-md: 0 4px 15px rgba(0,0,0,0.5);
+
+        /* Stats Colors Dark - Brighter variants for better contrast */
+        --stats-success-bg: rgba(25, 135, 84, 0.15);
+        --stats-danger-bg: rgba(220, 53, 69, 0.15);
+        --stats-info-bg: rgba(13, 202, 240, 0.15);
+        --stats-success-text: #75b798;
+        --stats-danger-text: #ea868f;
+        --stats-info-text: #6edff6;
+    }
+
+    /* --- GLOBAL RESET & LAYOUT --- */
+    body {
+        background-color: var(--bg-body);
+        color: var(--text-main);
+        transition: background-color 0.3s ease, color 0.3s ease;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    main { flex: 1; }
+
+    /* --- NAVBAR SWAG --- */
+    .navbar {
+        background-color: var(--bg-nav) !important;
+        padding: 1rem 0;
+        border-bottom: 3px solid var(--accent-primary);
+    }
+    .navbar-brand {
+        font-weight: 800;
+        letter-spacing: -1px;
+        font-size: 1.5rem;
+    }
+
+    /* --- PREMIUM CARD STYLES --- */
+    .card { 
+        background-color: var(--bg-card); 
+        border: 1px solid var(--border-color);
+        color: var(--text-main);
+        border-radius: 12px;
+        box-shadow: var(--shadow-sm);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    /* Stats Cards with Full Accent Vibes */
+    .stats-card {
+        border: none !important;
+        position: relative;
+        overflow: hidden;
+    }
     
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    /* Success Accent */
+    .stats-card.border-success {
+        background-color: var(--stats-success-bg) !important;
+        border-top: 4px solid var(--stats-success-text) !important;
+    }
+    .stats-card.border-success h2 { color: var(--stats-success-text) !important; }
     
-    <style>
-        /* --- THE THEME ENGINE: SITE-WIDE VIBES --- 
-           We're using CSS variables so everything from the dashboard 
-           to the login page respects the Big Boss's chosen vibe lol.
-        */
-        :root {
-            --bg-body: #f8f9fa;
-            --bg-card: #ffffff;
-            --bg-nav: #212529;
-            --text-main: #212529;
-            --text-muted: #6c757d;
-            --border-color: #dee2e6;
-            --accent-primary: #0d6efd;
-            --toggle-bg: #212529;
-            --toggle-color: #ffffff;
-            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
-            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
-            
-            /* Stats Colors */
-            --stats-success-bg: rgba(25, 135, 84, 0.05);
-            --stats-danger-bg: rgba(220, 53, 69, 0.05);
-            --stats-info-bg: rgba(13, 202, 240, 0.05);
-        }
+    /* Danger Accent */
+    .stats-card.border-danger {
+        background-color: var(--stats-danger-bg) !important;
+        border-top: 4px solid var(--stats-danger-text) !important;
+    }
+    .stats-card.border-danger h2 { color: var(--stats-danger-text) !important; }
+    
+    /* Info Accent */
+    .stats-card.border-info {
+        background-color: var(--stats-info-bg) !important;
+        border-top: 4px solid var(--stats-info-text) !important;
+    }
+    .stats-card.border-info h2 { color: var(--stats-info-text) !important; }
 
-        [data-theme="dark"] {
-            --bg-body: #121416;
-            --bg-card: #1a1d21;
-            --bg-nav: #000000;
-            --text-main: #e1e1e1;
-            --text-muted: #adb5bd;
-            --border-color: #2d3238;
-            --accent-primary: #3d8bfd;
-            --toggle-bg: #f8f9fa;
-            --toggle-color: #212529;
-            --shadow-sm: 0 2px 4px rgba(0,0,0,0.3);
-            --shadow-md: 0 4px 15px rgba(0,0,0,0.5);
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-md);
+    }
 
-            /* Stats Colors Dark */
-            --stats-success-bg: rgba(25, 135, 84, 0.15);
-            --stats-danger-bg: rgba(220, 53, 69, 0.15);
-            --stats-info-bg: rgba(13, 202, 240, 0.15);
-        }
+    /* --- UI COMPONENTS --- */
+    .btn-primary {
+        border-radius: 8px;
+        font-weight: 600;
+        padding: 0.6rem 1.5rem;
+    }
+    
+    .footer {
+        background-color: var(--bg-card);
+        border-top: 1px solid var(--border-color);
+        color: var(--text-muted);
+        padding: 2rem 0;
+    }
 
-        /* --- GLOBAL RESET & LAYOUT --- */
-        body {
-            background-color: var(--bg-body);
-            color: var(--text-main);
-            transition: background-color 0.3s ease, color 0.3s ease;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+    /* --- THE FLOATING TOGGLE --- */
+    .theme-toggle-btn {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 55px;
+        height: 55px;
+        background: var(--toggle-bg);
+        color: var(--toggle-color);
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        z-index: 1000;
+        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .theme-toggle-btn:hover { transform: scale(1.15) rotate(15deg); }
 
-        main { flex: 1; }
+    /* Logic for alerts */
+    .alert { border-radius: 10px; border: none; box-shadow: var(--shadow-sm); }
+    
+    /* Custom Utility for text-dark replacement */
+    .theme-text-bold { color: var(--text-main) !important; font-weight: 700; }
+</style>
 
-        /* --- NAVBAR SWAG --- */
-        .navbar {
-            background-color: var(--bg-nav) !important;
-            padding: 1rem 0;
-            border-bottom: 3px solid var(--accent-primary);
-        }
-        .navbar-brand {
-            font-weight: 800;
-            letter-spacing: -1px;
-            font-size: 1.5rem;
-        }
+<!-- Theme Logic IIFE (Kill that white flash lol) -->
+<script>
+    (function() {
+        const savedTheme = localStorage.getItem('site-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+</script>
 
-        /* --- PREMIUM CARD STYLES --- */
-        .card { 
-            background-color: var(--bg-card); 
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            border-radius: 12px;
-            box-shadow: var(--shadow-sm);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
 
-        /* Stats Cards with Full Accent Vibes */
-        .stats-card {
-            border: none !important;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        /* Success Accent */
-        .stats-card.border-success {
-            background-color: var(--stats-success-bg) !important;
-            border-top: 4px solid #198754 !important;
-        }
-        .stats-card.border-success h2 { color: #198754; }
-        
-        /* Danger Accent */
-        .stats-card.border-danger {
-            background-color: var(--stats-danger-bg) !important;
-            border-top: 4px solid #dc3545 !important;
-        }
-        .stats-card.border-danger h2 { color: #dc3545; }
-        
-        /* Info Accent */
-        .stats-card.border-info {
-            background-color: var(--stats-info-bg) !important;
-            border-top: 4px solid #0dcaf0 !important;
-        }
-        .stats-card.border-info h2 { color: #0dcaf0; }
-
-        .stats-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-md);
-        }
-
-        /* --- UI COMPONENTS --- */
-        .btn-primary {
-            border-radius: 8px;
-            font-weight: 600;
-            padding: 0.6rem 1.5rem;
-        }
-        
-        .footer {
-            background-color: var(--bg-card);
-            border-top: 1px solid var(--border-color);
-            color: var(--text-muted);
-            padding: 2rem 0;
-        }
-
-        /* --- THE FLOATING TOGGLE --- */
-        .theme-toggle-btn {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 55px;
-            height: 55px;
-            background: var(--toggle-bg);
-            color: var(--toggle-color);
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.4rem;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            z-index: 1000;
-            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .theme-toggle-btn:hover { transform: scale(1.15) rotate(15deg); }
-
-        /* Logic for alerts */
-        .alert { border-radius: 10px; border: none; box-shadow: var(--shadow-sm); }
-    </style>
-
-    <!-- Theme Logic IIFE (Kill that white flash lol) -->
-    <script>
-        (function() {
-            const savedTheme = localStorage.getItem('site-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-            document.documentElement.setAttribute('data-theme', savedTheme);
-        })();
-    </script>
 </head>
 <body>
 
-    <!-- Main Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
-        <div class="container">
-            <a class="navbar-brand" href="{% url 'dashboard' %}">
-                <i class="fas fa-network-wired me-2 text-primary"></i>NetDevFlow
-            </a>
-            
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <i class="fas fa-bars"></i>
-            </button>
+<!-- Main Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'dashboard' %}">
+            <i class="fas fa-network-wired me-2 text-primary"></i>NetDevFlow
+        </a>
+        
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <i class="fas fa-bars"></i>
+        </button>
 
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'device_list' %}">Inventory</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'kanban_board' %}">Kanban</a>
-                    </li>
-                </ul>
-                
-                <div class="navbar-nav align-items-center">
-                    {% if user.is_authenticated %}
-                        <div class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-white fw-bold" href="#" id="userMenu" role="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-user-circle me-1"></i>{{ user.username }}
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0">
-                                <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="fas fa-cog me-2"></i>Admin HQ</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <form method="post" action="{% url 'logout' %}" class="px-3">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-danger btn-sm w-100 mt-1">Logout</button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </div>
-                    {% else %}
-                        <a href="{% url 'login' %}" class="btn btn-primary btn-sm px-4 shadow-sm">Login</a>
-                    {% endif %}
-                </div>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'device_list' %}">Inventory</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'kanban_board' %}">Kanban</a>
+                </li>
+            </ul>
+            
+            <div class="navbar-nav align-items-center">
+                {% if user.is_authenticated %}
+                    <div class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-white fw-bold" href="#" id="userMenu" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle me-1"></i>{{ user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0">
+                            <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="fas fa-cog me-2"></i>Admin HQ</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form method="post" action="{% url 'logout' %}" class="px-3">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger btn-sm w-100 mt-1">Logout</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-primary btn-sm px-4 shadow-sm">Login</a>
+                {% endif %}
             </div>
         </div>
-    </nav>
-
-    <!-- Global Messages Container -->
-    <div class="container mt-4">
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-info-circle{% endif %} me-2"></i>
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            {% endfor %}
-        {% endif %}
     </div>
+</nav>
 
-    <!-- Page Content Block -->
-    <main class="container py-4">
-        {% block content %}{% endblock %}
-    </main>
+<!-- Global Messages Container -->
+<div class="container mt-4">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-info-circle{% endif %} me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
 
-    <!-- Site Footer -->
-    <footer class="footer mt-auto">
-        <div class="container text-center">
-            <p class="mb-1 fw-bold text-dark">NetDevFlow Command Center</p>
-            <p class="mb-0 small opacity-75">© 2024 — Running with <span class="text-primary fw-bold">Big Boss Mode</span> active lol.</p>
-        </div>
-    </footer>
+<!-- Page Content Block -->
+<main class="container py-4">
+    {% block content %}{% endblock %}
+</main>
 
-    <!-- Theme Toggle Switcher Script -->
-    <script>
-        window.addEventListener('DOMContentLoaded', () => {
-            const toggleBtn = document.createElement('button');
-            toggleBtn.className = 'theme-toggle-btn';
-            toggleBtn.setAttribute('title', 'Switch the Vibe');
-            toggleBtn.innerHTML = document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
-            document.body.appendChild(toggleBtn);
+<!-- Site Footer -->
+<footer class="footer mt-auto">
+    <div class="container text-center">
+        <p class="mb-1 fw-bold theme-text-bold">NetDevFlow Command Center</p>
+        <p class="mb-0 small opacity-75">© 2024 — Running with <span class="text-primary fw-bold">Big Boss Mode</span> active lol.</p>
+    </div>
+</footer>
 
-            toggleBtn.addEventListener('click', () => {
-                const currentTheme = document.documentElement.getAttribute('data-theme');
-                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-                
-                document.documentElement.setAttribute('data-theme', newTheme);
-                localStorage.setItem('site-theme', newTheme);
-                toggleBtn.innerHTML = newTheme === 'dark' ? '☀️' : '🌙';
-            });
+<!-- Theme Toggle Switcher Script -->
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        const toggleBtn = document.createElement('button');
+        toggleBtn.className = 'theme-toggle-btn';
+        toggleBtn.setAttribute('title', 'Switch the Vibe');
+        toggleBtn.innerHTML = document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
+        document.body.appendChild(toggleBtn);
+
+        toggleBtn.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('site-theme', newTheme);
+            toggleBtn.innerHTML = newTheme === 'dark' ? '☀️' : '🌙';
         });
-    </script>
+    });
+</script>
 
-    <!-- Bootstrap Bundle JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Bootstrap Bundle JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
 </body>
 </html>

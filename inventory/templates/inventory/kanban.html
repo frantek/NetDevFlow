@@ -5,10 +5,10 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h2 class="fw-bold mb-0">Maintenance Kanban</h2>
-        <p class="text-muted">Drag and drop tickets to update infrastructure maintenance status.</p>
+        <h2 class="fw-bold mb-0 theme-text-main">Maintenance Kanban</h2>
+        <p class="theme-text-muted">Drag and drop tickets to update infrastructure maintenance status.</p>
     </div>
-    <div class="btn-group">
+    <div class="btn-group shadow-sm">
         <a href="{% url 'ticket_create' %}" class="btn btn-primary">
             <i class="fas fa-plus me-1"></i> New Ticket
         </a>
@@ -22,10 +22,10 @@
 <div class="kanban-board pb-4">
     
     <!-- Open Column -->
-    <div class="kanban-column">
-        <div class="kanban-header">
+    <div class="kanban-column shadow-sm">
+        <div class="kanban-header border-bottom">
             <span><i class="fas fa-inbox me-2 text-primary"></i>OPEN</span>
-            <span class="badge bg-white text-dark shadow-sm">{{ tickets_open.count }}</span>
+            <span class="badge kanban-badge">{{ tickets_open.count }}</span>
         </div>
         <div class="kanban-cards" id="OPEN" data-status="OPEN">
             {% for ticket in tickets_open %}
@@ -35,10 +35,10 @@
     </div>
 
     <!-- In Progress Column -->
-    <div class="kanban-column">
-        <div class="kanban-header">
+    <div class="kanban-column shadow-sm">
+        <div class="kanban-header border-bottom">
             <span><i class="fas fa-spinner fa-spin me-2 text-warning"></i>IN PROGRESS</span>
-            <span class="badge bg-white text-dark shadow-sm">{{ tickets_progress.count }}</span>
+            <span class="badge kanban-badge">{{ tickets_progress.count }}</span>
         </div>
         <div class="kanban-cards" id="IN_PROGRESS" data-status="IN_PROGRESS">
             {% for ticket in tickets_progress %}
@@ -48,10 +48,10 @@
     </div>
 
     <!-- Resolved Column -->
-    <div class="kanban-column">
-        <div class="kanban-header">
+    <div class="kanban-column shadow-sm">
+        <div class="kanban-header border-bottom">
             <span><i class="fas fa-check-circle me-2 text-success"></i>RESOLVED</span>
-            <span class="badge bg-white text-dark shadow-sm">{{ tickets_resolved.count }}</span>
+            <span class="badge kanban-badge">{{ tickets_resolved.count }}</span>
         </div>
         <div class="kanban-cards" id="RESOLVED" data-status="RESOLVED">
             {% for ticket in tickets_resolved %}
@@ -61,10 +61,10 @@
     </div>
 
     <!-- Closed Column -->
-    <div class="kanban-column">
-        <div class="kanban-header">
+    <div class="kanban-column shadow-sm">
+        <div class="kanban-header border-bottom">
             <span><i class="fas fa-archive me-2 text-secondary"></i>CLOSED</span>
-            <span class="badge bg-white text-dark shadow-sm">{{ tickets_closed.count }}</span>
+            <span class="badge kanban-badge">{{ tickets_closed.count }}</span>
         </div>
         <div class="kanban-cards" id="CLOSED" data-status="CLOSED">
             {% for ticket in tickets_closed %}
@@ -75,6 +75,67 @@
 
 </div>
 
+<style>
+    /* Theme Helpers */
+    .theme-text-main { color: var(--text-main) !important; }
+    .theme-text-muted { color: var(--text-muted) !important; }
+
+    /* Kanban Layout Logic: Switched to Grid to avoid horizontal scrolling */
+    .kanban-board {
+        display: grid;
+        /* Automatically adjust columns based on screen width */
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        padding: 0.25rem 0 2rem 0; 
+        min-height: 75vh;
+    }
+
+    .kanban-column {
+        background-color: var(--bg-body);
+        border-radius: 14px;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid var(--border-color);
+        height: fit-content;
+        min-height: 300px;
+        transition: background-color 0.3s ease;
+    }
+
+    .kanban-header {
+        padding: 1.25rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 800;
+        font-size: 0.75rem;
+        letter-spacing: 1.2px;
+        color: var(--text-main);
+        background-color: var(--bg-card);
+        border-radius: 14px 14px 0 0;
+    }
+
+    .kanban-badge {
+        background-color: var(--bg-body) !important;
+        color: var(--text-main) !important;
+        border: 1px solid var(--border-color);
+        font-size: 0.8rem;
+    }
+
+    .kanban-cards {
+        padding: 1rem;
+        min-height: 200px;
+        flex-grow: 1;
+    }
+
+    /* Drag and Drop Ghost Style */
+    .ghost-card {
+        opacity: 0.3;
+        background-color: var(--accent-primary) !important;
+        border: 2px dashed var(--accent-primary) !important;
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const columns = document.querySelectorAll('.kanban-cards');
@@ -82,14 +143,14 @@
         columns.forEach(column => {
             new Sortable(column, {
                 group: 'kanban',
-                animation: 150,
+                animation: 200,
                 ghostClass: 'ghost-card',
+                dragClass: 'sortable-drag',
                 onEnd: function (evt) {
                     const itemEl = evt.item; 
                     const newStatus = evt.to.getAttribute('data-status');
                     const ticketId = itemEl.getAttribute('data-id');
 
-                    // Call the backend to update the status
                     updateTicketStatus(ticketId, newStatus);
                 }
             });
@@ -107,11 +168,10 @@
                 });
                 
                 if (!response.ok) {
-                    console.error('Failed to update ticket status');
-                    // Optionally refresh page or move card back on failure
+                    console.error('Status sync failed');
                 }
             } catch (error) {
-                console.error('Error:', error);
+                console.error('Network Error:', error);
             }
         }
     });
