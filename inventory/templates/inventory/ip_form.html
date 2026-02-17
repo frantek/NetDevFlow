@@ -11,18 +11,44 @@
 <h4 class="mb-0 fw-bold theme-text-main">
 {% if object %}Edit IP: {{ object.address }}{% else %}Allocate New IP Address{% endif %}
 </h4>
-<p class="theme-text-muted small mb-0">Assign network credentials to your hardware assets.</p>
+<p class="theme-text-muted small mb-0">Select a prefix to view and assign available network addresses.</p>
 </div>
 <div class="card-body p-4">
 <form method="post">
 {% csrf_token %}
+
+                <!-- Prefix Selection (Triggers the dynamic IP lookup) -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold small text-uppercase theme-text-muted">Network Prefix</label>
+                    <select id="prefix-selector" class="form-select">
+                        <option value="">-- Select a Prefix --</option>
+                        {% for prefix in prefixes %}
+                            <option value="{{ prefix.id }}">{{ prefix.prefix }} ({{ prefix.vrf.name|default:"Global" }})</option>
+                        {% endfor %}
+                    </select>
+                    <div class="form-text small opacity-75">Choosing a prefix will filter available IP addresses.</div>
+                </div>
+
+                <hr class="my-4 opacity-10">
 
                 {% for field in form %}
                 <div class="mb-3">
                     <label for="{{ field.id_for_label }}" class="form-label fw-bold small text-uppercase theme-text-muted">
                         {{ field.label }}
                     </label>
-                    {{ field }}
+
+                    {% if field.name == 'address' %}
+                        <!-- Replace standard input with dynamic dropdown -->
+                        <select name="{{ field.name }}" id="{{ field.id_for_label }}" class="form-select" required>
+                            <option value="">Select a prefix first...</option>
+                            {% if object %}
+                                <option value="{{ object.address }}" selected>{{ object.address }}</option>
+                            {% endif %}
+                        </select>
+                    {% else %}
+                        {{ field }}
+                    {% endif %}
+
                     {% if field.help_text %}
                         <div class="form-text small opacity-75">{{ field.help_text }}</div>
                     {% endif %}
@@ -46,12 +72,65 @@
 
 </div>
 
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+const prefixSelector = document.getElementById('prefix-selector');
+const ipSelector = document.getElementById('id_address'); // Matches Django's default ID for 'address' field
+
+    prefixSelector.addEventListener(&#39;change&#39;, async function() {
+        const prefixId = this.value;
+        
+        // Clear current options
+        ipSelector.innerHTML = &#39;&lt;option value=&quot;&quot;&gt;Loading available IPs...&lt;/option&gt;&#39;;
+        ipSelector.disabled = true;
+
+        if (!prefixId) {
+            ipSelector.innerHTML = &#39;&lt;option value=&quot;&quot;&gt;Select a prefix first...&lt;/option&gt;&#39;;
+            return;
+        }
+
+        try {
+            // Fetch available IPs from the GetAvailableIPsView in the Canvas
+            const response = await fetch(`/ips/available/${prefixId}/`);
+            const data = await response.json();
+
+            if (data.status === &#39;success&#39;) {
+                ipSelector.innerHTML = &#39;&#39;;
+                if (data.available_ips.length === 0) {
+                    ipSelector.innerHTML = &#39;&lt;option value=&quot;&quot;&gt;No free IPs in this range&lt;/option&gt;&#39;;
+                } else {
+                    data.available_ips.forEach(ip =&gt; {
+                        const option = document.createElement(&#39;option&#39;);
+                        option.value = ip;
+                        option.textContent = ip;
+                        ipSelector.appendChild(option);
+                    });
+                    ipSelector.disabled = false;
+                }
+            } else {
+                ipSelector.innerHTML = `&lt;option value=&quot;&quot;&gt;Error: ${data.message}&lt;/option&gt;`;
+            }
+        } catch (error) {
+            ipSelector.innerHTML = &#39;&lt;option value=&quot;&quot;&gt;Network error fetching IPs&lt;/option&gt;&#39;;
+            console.error(&#39;IPAM Fetch Error:&#39;, error);
+        }
+    });
+});
+
+
+</script>
+
 <style>
 .theme-text-main { color: var(--text-main) !important; }
 .theme-text-muted { color: var(--text-muted) !important; }
 .activity-card {
 background-color: var(--bg-card) !important;
 border: 1px solid var(--border-color) !important;
+}
+.form-control, .form-select {
+background-color: var(--bg-body) !important;
+border-color: var(--border-color) !important;
+color: var(--text-main) !important;
 }
 </style>
 

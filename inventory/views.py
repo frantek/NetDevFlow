@@ -1,6 +1,7 @@
 import json
 from django.shortcuts import render, get_object_or_404
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -10,6 +11,8 @@ from django.http import JsonResponse
 from django.core.exceptions import ObjectDoesNotExist
 from .models import Device, IPAddress, MaintenanceTicket, Profile, Rack, DataCenter, Row, TicketUpdate
 from .forms import DeviceForm, IPAddressForm, TicketForm
+from .models import VLAN, VRF, Prefix, IPAddress
+from .forms import VLANForm, VRFForm, PrefixForm
 
 # --- Role-Based Access Mixins ---
 
@@ -21,19 +24,26 @@ class StaffRequiredMixin(UserPassesTestMixin):
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.profile.role in ['TECHNICIAN', 'MANAGER']
 
+class TechRequiredMixin(UserPassesTestMixin):
+    def test_func(self):
+        return self.request.user.profile.role in ['TECHNICIAN', 'MANAGER']
+
 # --- Dashboard View ---
 
 def dashboard(request):
     """
-    Aggregates stats for the main overview.
+    Main HQ Dashboard providing a high-level overview of infrastructure health and network segments.
     """
     context = {
         'total_devices': Device.objects.count(),
         'online_count': Device.objects.filter(status='ONLINE').count(),
         'critical_tickets': MaintenanceTicket.objects.filter(severity='CRITICAL', status='OPEN').count(),
-        'recent_tickets': MaintenanceTicket.objects.all()[:5],
-        'device_types': Device.objects.values('device_type').annotate(count=Count('device_type')),
+        'recent_tickets': MaintenanceTicket.objects.select_related('device').all()[:5],
         'dc_stats': DataCenter.objects.annotate(rack_count=Count('rows__racks')),
+        # New IPAM metrics for the Big Boss
+        'vrf_count': VRF.objects.count(),
+        'vlan_count': VLAN.objects.count(),
+        'prefix_count': Prefix.objects.count(),
     }
     return render(request, 'inventory/dashboard.html', context)
 
@@ -360,45 +370,162 @@ class TicketUpdateView(LoginRequiredMixin, TechOrManagerRequiredMixin, UpdateVie
         return response
 
 # --- IPAM Logic (NEW: LO2 & LO7) ---
+# --- IP Address Management (IPAM) ---
 
 class IPAddressListView(LoginRequiredMixin, ListView):
-    """Centralized IPAM overview."""
     model = IPAddress
     template_name = 'inventory/ip_list.html'
     context_object_name = 'ips'
-    queryset = IPAddress.objects.select_related('device').all()
+    queryset = IPAddress.objects.select_related('vrf', 'device').all()
 
-class IPAddressCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
-    """Allocate a new address to the infrastructure."""
+class IPAddressCreateView(LoginRequiredMixin, TechRequiredMixin, CreateView):
     model = IPAddress
     form_class = IPAddressForm
     template_name = 'inventory/ip_form.html'
     success_url = reverse_lazy('ip_list')
 
-    def test_func(self):
-        return self.request.user.profile.role in ['TECHNICIAN', 'MANAGER']
+    def get_initial(self):
+        initial = super().get_initial()
+        prefix_id = self.request.GET.get('prefix')
+        if prefix_id:
+            prefix = get_object_or_404(Prefix, pk=prefix_id)
+            initial['vrf'] = prefix.vrf
+        return initial
 
     def form_valid(self, form):
         messages.success(self.request, f"IP Address {form.instance.address} successfully allocated.")
         return super().form_valid(form)
 
-class IPAddressUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+class IPAddressUpdateView(LoginRequiredMixin, TechRequiredMixin, UpdateView):
     model = IPAddress
     form_class = IPAddressForm
     template_name = 'inventory/ip_form.html'
     success_url = reverse_lazy('ip_list')
 
-    def test_func(self):
-        return self.request.user.profile.role in ['TECHNICIAN', 'MANAGER']
+    def form_valid(self, form):
+        messages.info(self.request, f"Allocation for {form.instance.address} updated.")
+        return super().form_valid(form)
 
-class IPAddressDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
-    """Decommission an IP address. Restricted to Managers."""
+class IPAddressDeleteView(LoginRequiredMixin, ManagerRequiredMixin, DeleteView):
     model = IPAddress
     template_name = 'inventory/ip_confirm_delete.html'
     success_url = reverse_lazy('ip_list')
 
-    def test_func(self):
-        return self.request.user.profile.role == 'MANAGER'
+    def delete(self, request, *args, **kwargs):
+        messages.warning(self.request, "IP Address decommissioned and released to the pool.")
+        return super().delete(request, *args, **kwargs)
+
+class GetAvailableIPsView(LoginRequiredMixin, View):
+    """
+    API view to return available IPs within a prefix.
+    Used by the front-end to populate selection forms.
+    """
+    def get(self, request, prefix_id):
+        prefix_obj = get_object_or_404(Prefix, pk=prefix_id)
+        try:
+            network = ipaddress.ip_network(prefix_obj.prefix)
+            # Fetch all currently assigned IPs in the system
+            used_ips = set(IPAddress.objects.values_list('address', flat=True))
+            
+            available_ips = []
+            # Only return the first 100 available to prevent browser hang on large subnets
+            for ip in network.hosts():
+                ip_str = str(ip)
+                if ip_str not in used_ips:
+                    available_ips.append(ip_str)
+                    if len(available_ips) >= 100:
+                        break
+            
+            return JsonResponse({'status': 'success', 'available_ips': available_ips})
+        except ValueError:
+            return JsonResponse({'status': 'error', 'message': 'Invalid Prefix format'}, status=400)
+
+# --- VLAN Management ---
+
+class VLANListView(LoginRequiredMixin, ListView):
+    model = VLAN
+    template_name = 'inventory/vlan_list.html'
+    context_object_name = 'vlans'
+    queryset = VLAN.objects.select_related('data_center').all()
+
+class VLANCreateView(LoginRequiredMixin, TechRequiredMixin, CreateView):
+    model = VLAN
+    form_class = VLANForm
+    template_name = 'inventory/vlan_form.html'
+    success_url = reverse_lazy('vlan_list')
+
+class VLANUpdateView(LoginRequiredMixin, TechRequiredMixin, UpdateView):
+    model = VLAN
+    form_class = VLANForm
+    template_name = 'inventory/vlan_form.html'
+    success_url = reverse_lazy('vlan_list')
+
+class VLANDeleteView(LoginRequiredMixin, ManagerRequiredMixin, DeleteView):
+    model = VLAN
+    template_name = 'inventory/vlan_confirm_delete.html'
+    success_url = reverse_lazy('vlan_list')
+
+# --- VRF Management ---
+
+class VRFListView(LoginRequiredMixin, ListView):
+    model = VRF
+    template_name = 'inventory/vrf_list.html'
+    context_object_name = 'vrfs'
+
+class VRFCreateView(LoginRequiredMixin, TechRequiredMixin, CreateView):
+    model = VRF
+    form_class = VRFForm
+    template_name = 'inventory/vrf_form.html'
+    success_url = reverse_lazy('vrf_list')
+
+class VRFUpdateView(LoginRequiredMixin, TechRequiredMixin, UpdateView):
+    model = VRF
+    form_class = VRFForm
+    template_name = 'inventory/vrf_form.html'
+    success_url = reverse_lazy('vrf_list')
+
+class VRFDeleteView(LoginRequiredMixin, ManagerRequiredMixin, DeleteView):
+    model = VRF
+    template_name = 'inventory/vrf_confirm_delete.html'
+    success_url = reverse_lazy('vrf_list')
+
+# --- Prefix Management ---
+
+class PrefixListView(LoginRequiredMixin, ListView):
+    model = Prefix
+    template_name = 'inventory/prefix_list.html'
+    context_object_name = 'prefixes'
+    queryset = Prefix.objects.select_related('vrf', 'vlan', 'site').all()
+
+class PrefixCreateView(LoginRequiredMixin, TechRequiredMixin, CreateView):
+    model = Prefix
+    form_class = PrefixForm
+    template_name = 'inventory/prefix_form.html'
+    success_url = reverse_lazy('prefix_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, f"Prefix {form.instance.prefix} successfully created.")
+        return super().form_valid(form)
+
+class PrefixUpdateView(LoginRequiredMixin, TechRequiredMixin, UpdateView):
+    """View used by the 'prefix_update' URL pattern."""
+    model = Prefix
+    form_class = PrefixForm
+    template_name = 'inventory/prefix_form.html'
+    success_url = reverse_lazy('prefix_list')
+
+    def form_valid(self, form):
+        messages.info(self.request, f"Prefix {form.instance.prefix} has been updated.")
+        return super().form_valid(form)
+
+class PrefixDeleteView(LoginRequiredMixin, ManagerRequiredMixin, DeleteView):
+    model = Prefix
+    template_name = 'inventory/prefix_confirm_delete.html'
+    success_url = reverse_lazy('prefix_list')
+
+    def delete(self, request, *args, **kwargs):
+        messages.warning(self.request, "Prefix has been decommissioned.")
+        return super().delete(request, *args, **kwargs)
 
 # --- Custom Error Handlers (LO1.1 & UX Enhancement) ---
 

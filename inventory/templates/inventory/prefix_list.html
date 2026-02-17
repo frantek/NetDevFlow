@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block title %}Prefix Management | NetDevFlow{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+<div>
+<h2 class="fw-bold mb-0 theme-text-main">Prefixes</h2>
+<p class="theme-text-muted">Manage IPv4/IPv6 subnets and network containers.</p>
+</div>
+{% if user.profile.role != 'READONLY' %}
+<a href="{% url 'prefix_create' %}" class="btn btn-primary shadow-sm">
+<i class="fas fa-plus me-1"></i> Add Prefix
+</a>
+{% endif %}
+</div>
+
+<div class="card activity-card shadow-sm">
+<div class="card-body p-0">
+<div class="table-responsive">
+<table class="table table-hover align-middle mb-0">
+<thead>
+<tr>
+<th class="ps-4">Prefix (CIDR)</th>
+<th>Status</th>
+<th>VRF</th>
+<th>VLAN</th>
+<th>Site</th>
+<th class="text-end pe-4">Actions</th>
+</tr>
+</thead>
+<tbody>
+{% for prefix in prefixes %}
+<tr class="theme-table-row">
+<td class="ps-4">
+<code class="h6 text-primary fw-bold">{{ prefix.prefix }}</code>
+</td>
+<td>
+<span class="badge {% if prefix.status == 'ACTIVE' %}bg-success{% elif prefix.status == 'CONTAINER' %}bg-info{% else %}bg-secondary{% endif %} rounded-pill">
+{{ prefix.status }}
+</span>
+</td>
+<td class="theme-text-main">
+{% if prefix.vrf %}
+<i class="fas fa-project-diagram me-1 opacity-50"></i>{{ prefix.vrf.name }}
+{% else %}
+<span class="text-muted small">Global</span>
+{% endif %}
+</td>
+<td>
+{% if prefix.vlan %}
+<span class="badge bg-body-tertiary theme-text-main border">VLAN {{ prefix.vlan.vid }}</span>
+{% else %}
+<span class="text-muted small">—</span>
+{% endif %}
+</td>
+<td>{{ prefix.site.name|default:"Global" }}</td>
+<td class="text-end pe-4">
+<div class="btn-group">
+{% if user.profile.role != 'READONLY' %}
+<a href="{% url 'prefix_update' prefix.id %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></a>
+{% endif %}
+{% if user.profile.role == 'MANAGER' %}
+<a href="{% url 'prefix_delete' prefix.id %}" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash-alt"></i></a>
+{% endif %}
+</div>
+</td>
+</tr>
+{% empty %}
+<tr>
+<td colspan="6" class="text-center py-5 theme-text-muted">
+<i class="fas fa-network-wired fa-3x mb-3 opacity-25 d-block mx-auto"></i>
+No prefixes defined.
+</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+<style>
+.theme-text-main { color: var(--text-main) !important; }
+.theme-text-muted { color: var(--text-muted) !important; }
+.activity-card {
+background-color: var(--bg-card) !important;
+border: 1px solid var(--border-color) !important;
+}
+.table thead th {
+background-color: var(--bg-body) !important;
+color: var(--text-muted) !important;
+text-transform: uppercase;
+font-size: 0.75rem;
+letter-spacing: 1px;
+border-bottom: 2px solid var(--border-color) !important;
+}
+.theme-table-row:hover { background-color: var(--table-hover) !important; }
+</style>
+
+{% endblock %}

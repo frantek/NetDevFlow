@@ -136,17 +136,62 @@ class IPAddress(models.Model):
     """
     address = models.GenericIPAddressField(protocol='both', unpack_ipv4=True, unique=True)
     subnet_mask = models.CharField(max_length=20, default="255.255.255.0")
-    device = models.ForeignKey(Device, on_delete=models.CASCADE, related_name='ip_addresses')
+    vrf = models.ForeignKey('VRF', on_delete=models.SET_NULL, null=True, blank=True, related_name='ips')
+    device = models.ForeignKey('Device', on_delete=models.CASCADE, related_name='ip_addresses', null=True, blank=True)
     is_primary = models.BooleanField(default=False)
 
-    def clean(self):
-        if self.is_primary:
-            exists = IPAddress.objects.filter(device=self.device, is_primary=True).exclude(pk=self.pk).exists()
-            if exists:
-                raise ValidationError("This device already has a primary IP address assigned.")
+    class Meta:
+        verbose_name = "IP Address"
+        verbose_name_plural = "IP Addresses"
 
     def __str__(self):
-        return self.address
+        return f"{self.address} ({self.vrf.name if self.vrf else 'Global'})"
+
+
+class VRF(models.Model):
+    """Virtual Routing and Forwarding for multi-tenant isolation."""
+    name = models.CharField(max_length=100, unique=True)
+    rd = models.CharField(max_length=50, blank=True, null=True, verbose_name="Route Distinguisher")
+    description = models.TextField(blank=True)
+
+    class Meta:
+        verbose_name = "VRF"
+        verbose_name_plural = "VRFs"
+
+    def __str__(self):
+        return f"{self.name} (RD: {self.rd})" if self.rd else self.name
+
+class VLAN(models.Model):
+    """Layer 2 Broadcast Domains, scoped per Site (DataCenter)."""
+    vid = models.PositiveIntegerField(verbose_name="VLAN ID")
+    name = models.CharField(max_length=100)
+    data_center = models.ForeignKey(DataCenter, on_delete=models.CASCADE, related_name='vlans', null=True, blank=True)
+
+    STATUS_CHOICES = [('ACTIVE', 'Active'), ('RESERVED', 'Reserved'), ('DEPRECATED', 'Deprecated')]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ACTIVE')
+
+    class Meta:
+        unique_together = ('vid', 'data_center')
+        ordering = ['vid']
+
+    def __str__(self):
+        return f"VLAN {self.vid}: {self.name} ({self.data_center.name if self.data_center else 'Global'})"
+
+class Prefix(models.Model):
+    """Subnet containers (e.g., 10.0.0.0/24) for IPAM organization."""
+    prefix = models.CharField(max_length=50, help_text="CIDR format: 192.168.1.0/24")
+    vrf = models.ForeignKey(VRF, on_delete=models.SET_NULL, null=True, blank=True, related_name='prefixes')
+    vlan = models.ForeignKey(VLAN, on_delete=models.SET_NULL, null=True, blank=True, related_name='prefixes')
+    site = models.ForeignKey(DataCenter, on_delete=models.CASCADE, related_name='prefixes', null=True, blank=True)
+
+    STATUS_CHOICES = [('CONTAINER', 'Container'), ('ACTIVE', 'Active'), ('RESERVED', 'Reserved')]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ACTIVE')
+
+    class Meta:
+        verbose_name_plural = "Prefixes"
+
+    def __str__(self):
+        return f"{self.prefix} ({self.vrf.name if self.vrf else 'Global'})"
 
 # --- Ticket Threading & Maintenance Models ---
 

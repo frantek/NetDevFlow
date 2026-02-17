@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}VRF Management | NetDevFlow{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-0 theme-text-main">VRFs</h2>
+        <p class="theme-text-muted">Virtual Routing and Forwarding instances for network isolation.</p>
+    </div>
+    {% if user.profile.role != 'READONLY' %}
+        <a href="{% url 'vrf_create' %}" class="btn btn-primary shadow-sm">
+            <i class="fas fa-plus me-1"></i> Add VRF
+        </a>
+    {% endif %}
+</div>
+
+<div class="card activity-card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4">Name</th>
+                        <th>RD (Route Distinguisher)</th>
+                        <th>Description</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for vrf in vrfs %}
+                    <tr class="theme-table-row">
+                        <td class="ps-4 fw-bold theme-text-main">
+                            <i class="fas fa-project-diagram me-2 text-primary opacity-50"></i>{{ vrf.name }}
+                        </td>
+                        <td>
+                            {% if vrf.rd %}
+                                <code class="text-primary">{{ vrf.rd }}</code>
+                            {% else %}
+                                <span class="text-muted small">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="theme-text-muted small">
+                            {{ vrf.description|default:"No description provided."|truncatechars:60 }}
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="btn-group">
+                                {% if user.profile.role != 'READONLY' %}
+                                    <a href="{% url 'vrf_update' vrf.id %}" class="btn btn-sm btn-outline-secondary" title="Edit VRF">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                {% endif %}
+                                {% if user.profile.role == 'MANAGER' %}
+                                    <a href="{% url 'vrf_delete' vrf.id %}" class="btn btn-sm btn-outline-danger" title="Delete VRF">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-5 theme-text-muted">
+                            <i class="fas fa-project-diagram fa-3x mb-3 opacity-25 d-block mx-auto"></i>
+                            No VRFs defined. Start by adding a virtual routing instance.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .theme-text-main { color: var(--text-main) !important; }
+    .theme-text-muted { color: var(--text-muted) !important; }
+    .activity-card {
+        background-color: var(--bg-card) !important;
+        border: 1px solid var(--border-color) !important;
+    }
+    .table thead th {
+        background-color: var(--bg-body) !important;
+        color: var(--text-muted) !important;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        border-bottom: 2px solid var(--border-color) !important;
+    }
+    .theme-table-row:hover { background-color: var(--table-hover) !important; }
+</style>
+{% endblock %}

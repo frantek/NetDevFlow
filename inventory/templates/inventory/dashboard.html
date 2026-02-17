@@ -4,10 +4,11 @@
 
 {% block content %}
 <!-- Header Section (LO1.1) -->
+<!-- Header Section -->
 <div class="row mb-4">
     <div class="col-md-8">
-        <h2 class="fw-bold theme-text-main">Network Overview</h2>
-        <p class="theme-text-muted">Real-time status of managed hardware and critical tasks across DC sites.</p>
+        <h2 class="fw-bold theme-text-main">Command Center</h2>
+        <p class="theme-text-muted">Real-time infrastructure health and network segment tracking.</p>
     </div>
     <div class="col-md-4 text-md-end">
         {% if user.profile.role != 'READONLY' %}
@@ -23,9 +24,9 @@
     </div>
 </div>
 
-<!-- Stats Row: 4-Column High Performance Layout -->
-<div class="row g-4 mb-5">
-    <!-- Online Assets (Success) -->
+<!-- Row 1: Infrastructure Status (Restored Original Cards) -->
+<h6 class="text-uppercase theme-text-muted small fw-bold mb-3" style="letter-spacing: 1px;">Infrastructure Status</h6>
+<div class="row g-4 mb-4">
     <div class="col-md-3">
         <div class="card stats-card border-success h-100 shadow-sm">
             <div class="card-body">
@@ -34,12 +35,9 @@
                     <h2 class="mb-0 me-3">{{ online_count }}</h2>
                     <i class="fas fa-check-circle opacity-25 fa-2x"></i>
                 </div>
-                <p class="card-text small theme-text-muted mt-2">Total tracked: {{ total_devices }}</p>
             </div>
         </div>
     </div>
-
-    <!-- Critical Outages (Danger) -->
     <div class="col-md-3">
         <div class="card stats-card border-danger h-100 shadow-sm">
             <div class="card-body">
@@ -48,37 +46,81 @@
                     <h2 class="mb-0 me-3">{{ critical_tickets }}</h2>
                     <i class="fas fa-exclamation-triangle opacity-25 fa-2x"></i>
                 </div>
-                <p class="card-text small theme-text-muted mt-2">Requires immediate attention.</p>
             </div>
         </div>
     </div>
-
-    <!-- Physical Sites (DCIM Info) -->
     <div class="col-md-3">
-        <div class="card stats-card border-info h-100 shadow-sm">
+        <div class="card stats-card border-secondary h-100 shadow-sm">
             <div class="card-body">
-                <h6 class="text-uppercase theme-text-muted small fw-bold">Physical Sites</h6>
+                <h6 class="text-uppercase theme-text-muted small fw-bold">Total Devices</h6>
+                <div class="d-flex align-items-center">
+                    <h2 class="mb-0 me-3">{{ total_devices }}</h2>
+                    <i class="fas fa-server opacity-25 fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card border-secondary h-100 shadow-sm">
+            <div class="card-body">
+                <h6 class="text-uppercase theme-text-muted small fw-bold">Active Sites</h6>
                 <div class="d-flex align-items-center">
                     <h2 class="mb-0 me-3">{{ dc_stats.count }}</h2>
                     <i class="fas fa-city opacity-25 fa-2x"></i>
                 </div>
-                <a href="{% url 'datacenter_list' %}" class="stretched-link text-decoration-none small theme-text-muted mt-2 d-block">
-                    Manage Data Centers <i class="fas fa-arrow-right ms-1" style="font-size: 0.7rem;"></i>
-                </a>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Recent Logs (Muted/Secondary) -->
+<!-- Row 2: Network Segmentation (IPAM Cards) -->
+<h6 class="text-uppercase theme-text-muted small fw-bold mb-3 mt-2" style="letter-spacing: 1px;">Network Segmentation (IPAM)</h6>
+<div class="row g-4 mb-5">
     <div class="col-md-3">
-        <div class="card stats-card border-secondary h-100 shadow-sm">
+        <div class="card stats-card border-primary h-100 shadow-sm">
             <div class="card-body">
-                <h6 class="text-uppercase theme-text-muted small fw-bold">Recent Updates</h6>
+                <h6 class="text-uppercase theme-text-muted small fw-bold">VRF Instances</h6>
                 <div class="d-flex align-items-center">
-                    <h2 class="mb-0 me-3">{{ recent_tickets.count }}</h2>
-                    <i class="fas fa-history opacity-25 fa-2x"></i>
+                    <h2 class="mb-0 me-3">{{ vrf_count }}</h2>
+                    <i class="fas fa-project-diagram opacity-25 fa-2x"></i>
                 </div>
-                <p class="card-text small theme-text-muted mt-2">Logs generated in last 24h.</p>
+                <a href="{% url 'vrf_list' %}" class="stretched-link"></a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card border-info h-100 shadow-sm">
+            <div class="card-body">
+                <h6 class="text-uppercase theme-text-muted small fw-bold">VLANs</h6>
+                <div class="d-flex align-items-center">
+                    <h2 class="mb-0 me-3">{{ vlan_count }}</h2>
+                    <i class="fas fa-layer-group opacity-25 fa-2x"></i>
+                </div>
+                <a href="{% url 'vlan_list' %}" class="stretched-link"></a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card border-info h-100 shadow-sm">
+            <div class="card-body">
+                <h6 class="text-uppercase theme-text-muted small fw-bold">Managed Prefixes</h6>
+                <div class="d-flex align-items-center">
+                    <h2 class="mb-0 me-3">{{ prefix_count }}</h2>
+                    <i class="fas fa-network-wired opacity-25 fa-2x"></i>
+                </div>
+                <a href="{% url 'prefix_list' %}" class="stretched-link"></a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card border-primary h-100 shadow-sm">
+            <div class="card-body">
+                <h6 class="text-uppercase theme-text-muted small fw-bold">IP Allocations</h6>
+                <div class="d-flex align-items-center">
+                    <h2 class="mb-0 me-3">{{ ip_count }}</h2>
+                    <i class="fas fa-address-card opacity-25 fa-2x"></i>
+                </div>
+                <a href="{% url 'ip_list' %}" class="stretched-link"></a>
             </div>
         </div>
     </div>
@@ -167,9 +209,6 @@
                     <p class="theme-text-muted small">No Data Centers defined in system.</p>
                 </div>
                 {% endfor %}
-                <div class="d-grid mt-3">
-                    <a href="{% url 'datacenter_list' %}" class="btn btn-outline-primary btn-sm">Full DCIM Inventory</a>
-                </div>
             </div>
         </div>
     </div>

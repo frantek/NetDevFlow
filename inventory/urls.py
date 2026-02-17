@@ -19,6 +19,21 @@ urlpatterns = [
     path('ips/<int:pk>/edit/', views.IPAddressUpdateView.as_view(), name='ip_update'),
     path('ips/<int:pk>/delete/', views.IPAddressDeleteView.as_view(), name='ip_delete'),
 
+    path('vlans/', views.VLANListView.as_view(), name='vlan_list'),
+    path('vlans/add/', views.VLANCreateView.as_view(), name='vlan_create'),
+    path('vlans/<int:pk>/edit/', views.VLANUpdateView.as_view(), name='vlan_update'),
+    path('vlans/<int:pk>/delete/', views.VLANDeleteView.as_view(), name='vlan_delete'),
+    
+    path('vrfs/', views.VRFListView.as_view(), name='vrf_list'),
+    path('vrfs/add/', views.VRFCreateView.as_view(), name='vrf_create'),
+    path('vrfs/<int:pk>/edit/', views.VRFUpdateView.as_view(), name='vrf_update'),
+    path('vrfs/<int:pk>/delete/', views.VRFDeleteView.as_view(), name='vrf_delete'),
+    
+    path('prefixes/', views.PrefixListView.as_view(), name='prefix_list'),
+    path('prefixes/add/', views.PrefixCreateView.as_view(), name='prefix_create'),
+    path('prefixes/<int:pk>/edit/', views.PrefixUpdateView.as_view(), name='prefix_update'),
+    path('prefixes/<int:pk>/delete/', views.PrefixDeleteView.as_view(), name='prefix_delete'),
+
     # --- Rack Management (DCIM Hierarchy) ---
      # Data Center (DCIM Root)
     path('datacenters/', views.DataCenterListView.as_view(), name='datacenter_list'),

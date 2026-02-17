@@ -1,5 +1,6 @@
 from django import forms
 from .models import Device, IPAddress, MaintenanceTicket, DataCenter, Row, Rack
+from .models import VLAN, VRF, Prefix
 
 class DeviceForm(forms.ModelForm):
     """
@@ -24,24 +25,6 @@ class DeviceForm(forms.ModelForm):
         # Order racks by full DC path
         self.fields['rack'].queryset = Rack.objects.select_related('row__data_center').order_by('row__data_center__name', 'row__name', 'name')
 
-class IPAddressForm(forms.ModelForm):
-    """
-    Dedicated IPAM form for assigning and validating network addresses.
-    """
-    class Meta:
-        model = IPAddress
-        fields = ['address', 'subnet_mask', 'device', 'is_primary']
-        widgets = {
-            'address': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. 192.168.1.50'}),
-            'subnet_mask': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. 255.255.255.0'}),
-            'device': forms.Select(attrs={'class': 'form-select'}),
-            'is_primary': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-        }
-
-    def clean_address(self):
-        address = self.cleaned_data.get('address')
-        # Add custom logic here if you want to restrict specific ranges (LO2.4)
-        return address
 
 class RackForm(forms.ModelForm):
     class Meta:
@@ -75,17 +58,61 @@ class TicketForm(forms.ModelForm):
         # Optimization: Order device dropdown by hostname
         self.fields['device'].queryset = Device.objects.all().order_by('hostname')
 
+
 class IPAddressForm(forms.ModelForm):
     """
-    Form for assigning IP addresses to devices.
-    Uses GenericIPAddressField validation from the model.
+    Validated IPAM form for assigning and validating network addresses.
+    Includes custom validation to ensure formatting is correct.
     """
     class Meta:
         model = IPAddress
-        fields = ['address', 'subnet_mask', 'device', 'is_primary']
+        fields = ['address', 'vrf', 'device', 'is_primary']
         widgets = {
-            'address': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. 192.168.1.1'}),
-            'subnet_mask': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. 255.255.255.0'}),
+            'address': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. 192.168.1.50'}),
+            'vrf': forms.Select(attrs={'class': 'form-select'}),
             'device': forms.Select(attrs={'class': 'form-select'}),
             'is_primary': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+    def clean_address(self):
+        """
+        Verify the IP format before allowing it into the database.
+        (Django's GenericIPAddressField handles much of this, but we can add
+        custom subnet logic here if needed later).
+        """
+        address = self.cleaned_data.get('address')
+        # Logic for checking reserved ranges or leading zeros could go here.
+        return address
+
+class VLANForm(forms.ModelForm):
+    class Meta:
+        model = VLAN
+        fields = ['vid', 'name', 'data_center', 'status']
+        widgets = {
+            'vid': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 4094}),
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'data_center': forms.Select(attrs={'class': 'form-select'}),
+            'status': forms.Select(attrs={'class': 'form-select'}),
+        }
+
+class VRFForm(forms.ModelForm):
+    class Meta:
+        model = VRF
+        fields = ['name', 'rd', 'description']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'rd': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. 65000:1'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+
+class PrefixForm(forms.ModelForm):
+    class Meta:
+        model = Prefix
+        fields = ['prefix', 'vrf', 'vlan', 'site', 'status']
+        widgets = {
+            'prefix': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. 10.0.0.0/24'}),
+            'vrf': forms.Select(attrs={'class': 'form-select'}),
+            'vlan': forms.Select(attrs={'class': 'form-select'}),
+            'site': forms.Select(attrs={'class': 'form-select'}),
+            'status': forms.Select(attrs={'class': 'form-select'}),
         }

@@ -245,8 +245,17 @@
                         <a class="nav-link" href="{% url 'device_list' %}">Inventory</a>
                     </li>
                     <!-- Dedicated IPAM Link -->
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'ip_list' %}">IPAM</a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="ipamDropdown" role="button" data-bs-toggle="dropdown">
+                            IPAM
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark shadow border-0">
+                            <li><a class="dropdown-item" href="{% url 'ip_list' %}"><i class="fas fa-address-book me-2"></i>IP Addresses</a></li>
+                            <li><a class="dropdown-item" href="{% url 'prefix_list' %}"><i class="fas fa-network-wired me-2"></i>Prefixes</a></li>
+                            <li><hr class="dropdown-divider opacity-10"></li>
+                            <li><a class="dropdown-item" href="{% url 'vlan_list' %}"><i class="fas fa-layer-group me-2"></i>VLANs</a></li>
+                            <li><a class="dropdown-item" href="{% url 'vrf_list' %}"><i class="fas fa-project-diagram me-2"></i>VRFs</a></li>
+                        </ul>
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">DCIM Hierarchy</a>

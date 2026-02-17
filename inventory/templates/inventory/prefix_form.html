@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if object %}Update{% else %}Create{% endif %} Prefix | NetDevFlow{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card border-0 shadow-sm activity-card">
+            <div class="card-header bg-transparent py-3 text-center border-bottom">
+                <h4 class="mb-0 fw-bold theme-text-main">
+                    {% if object %}Edit Prefix: {{ object.prefix }}{% else %}Add New Prefix{% endif %}
+                </h4>
+                <p class="theme-text-muted small mb-0">Define network boundaries and allocation status.</p>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" id="prefix-form">
+                    {% csrf_token %}
+                    
+                    {% for field in form %}
+                        {% if field.name == 'prefix' %}
+                            <!-- Custom CIDR Compliant Input Group -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold small text-uppercase theme-text-muted">Network Prefix (CIDR)</label>
+                                <div class="input-group mb-2">
+                                    <input type="text" id="ip_part" class="form-control" placeholder="e.g. 192.168.1.0" style="flex: 3;">
+                                    <span class="input-group-text bg-body-tertiary">/</span>
+                                    <select id="mask_part" class="form-select" style="flex: 1.5;">
+                                        <!-- Populated via JavaScript to support IPv4 (32) and IPv6 (128) -->
+                                    </select>
+                                </div>
+                                
+                                <!-- Dynamic Range Display -->
+                                <div id="network-info-box" class="p-3 mb-3 rounded border bg-body-tertiary d-none">
+                                    <h6 class="tiny fw-bold text-uppercase theme-text-muted mb-2 border-bottom pb-1">Network Calculation</h6>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <small class="d-block theme-text-muted">Range:</small>
+                                            <span id="ip-range-start" class="small fw-bold theme-text-main"></span>
+                                        </div>
+                                        <div class="col-6 text-end">
+                                            <small class="d-block theme-text-muted">Broadcast:</small>
+                                            <span id="ip-range-end" class="small fw-bold theme-text-main"></span>
+                                        </div>
+                                        <div class="col-12 mt-2 pt-2 border-top">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <small class="theme-text-muted">Total Usable Hosts:</small>
+                                                <span id="ip-total-hosts" class="badge bg-primary"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Hidden field to store the combined CIDR for Django -->
+                                <input type="hidden" name="{{ field.name }}" id="{{ field.id_for_label }}" value="{{ field.value|default:'' }}">
+                                <div class="form-text small opacity-75">Enter the network address and select the bitmask (up to /128 for IPv6).</div>
+                                {% if field.errors %}
+                                    <div class="text-danger small mt-1 fw-bold">{{ field.errors.as_text }}</div>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <div class="mb-3">
+                                <label for="{{ field.id_for_label }}" class="form-label fw-bold small text-uppercase theme-text-muted">
+                                    {{ field.label }}
+                                </label>
+                                {{ field }}
+                                {% if field.help_text %}
+                                    <div class="form-text small opacity-75">{{ field.help_text }}</div>
+                                {% endif %}
+                                {% if field.errors %}
+                                    <div class="text-danger small mt-1 fw-bold">{{ field.errors.as_text }}</div>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg shadow-sm">
+                            {% if object %}Update Prefix{% else %}Create Prefix{% endif %}
+                        </button>
+                        <a href="{% url 'prefix_list' %}" class="btn btn-link theme-text-muted">Bail / Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const ipInput = document.getElementById('ip_part');
+        const maskSelect = document.getElementById('mask_part');
+        const hiddenPrefix = document.getElementById('id_prefix');
+        const infoBox = document.getElementById('network-info-box');
+        const rangeStart = document.getElementById('ip-range-start');
+        const rangeEnd = document.getElementById('ip-range-end');
+        const totalHosts = document.getElementById('ip-total-hosts');
+        
+        const initialValue = hiddenPrefix.value;
+
+        // 1. Populate Mask Dropdown (0 to 128)
+        for (let i = 0; i <= 128; i++) {
+            const opt = document.createElement('option');
+            opt.value = i;
+            opt.textContent = i;
+            if (i === 24 && !initialValue) opt.selected = true; 
+            maskSelect.appendChild(opt);
+        }
+
+        // 2. Populate initial parts if editing
+        if (initialValue && initialValue.includes('/')) {
+            const parts = initialValue.split('/');
+            ipInput.value = parts[0];
+            maskSelect.value = parts[1];
+            calculateRange(parts[0], parts[1]);
+        }
+
+        // Helper: Convert IPv4 to Integer
+        function ipToInt(ip) {
+            return ip.split('.').reduce((int, octet) => (int << 8) + parseInt(octet, 10), 0) >>> 0;
+        }
+
+        // Helper: Convert Integer to IPv4
+        function intToIp(int) {
+            return [(int >>> 24) & 0xFF, (int >>> 16) & 0xFF, (int >>> 8) & 0xFF, int & 0xFF].join('.');
+        }
+
+        function calculateRange(ip, mask) {
+            // Only calculate for IPv4 for this helper
+            const ipv4Regex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
+            if (!ipv4Regex.test(ip) || mask > 32) {
+                infoBox.classList.add('d-none');
+                return;
+            }
+
+            const ipInt = ipToInt(ip);
+            const maskInt = (0xFFFFFFFF << (32 - mask)) >>> 0;
+            const networkInt = (ipInt & maskInt) >>> 0;
+            const broadcastInt = (networkInt | (~maskInt >>> 0)) >>> 0;
+
+            const usableStart = mask < 31 ? networkInt + 1 : networkInt;
+            const usableEnd = mask < 31 ? broadcastInt - 1 : broadcastInt;
+            const hostCount = mask < 31 ? (broadcastInt - networkInt - 1) : (mask === 32 ? 1 : 2);
+
+            rangeStart.textContent = intToIp(usableStart);
+            rangeEnd.textContent = intToIp(usableEnd);
+            totalHosts.textContent = hostCount > 0 ? hostCount.toLocaleString() : 0;
+            
+            infoBox.classList.remove('d-none');
+        }
+
+        function updatePrefixValue() {
+            const ip = ipInput.value.trim();
+            const mask = maskSelect.value;
+            if (ip) {
+                hiddenPrefix.value = `${ip}/${mask}`;
+                calculateRange(ip, mask);
+            } else {
+                hiddenPrefix.value = '';
+                infoBox.classList.add('d-none');
+            }
+        }
+
+        ipInput.addEventListener('input', updatePrefixValue);
+        maskSelect.addEventListener('change', updatePrefixValue);
+    });
+</script>
+
+<style>
+    .theme-text-main { color: var(--text-main) !important; }
+    .theme-text-muted { color: var(--text-muted) !important; }
+    .activity-card {
+        background-color: var(--bg-card) !important;
+        border: 1px solid var(--border-color) !important;
+    }
+    .input-group-text {
+        border-color: var(--border-color);
+        color: var(--text-muted);
+    }
+    .tiny { font-size: 0.65rem; letter-spacing: 0.5px; }
+    .italic { font-style: italic; }
+</style>
+{% endblock %}

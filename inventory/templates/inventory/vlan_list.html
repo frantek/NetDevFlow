@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}VLAN Management | NetDevFlow{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-0 theme-text-main">VLAN Management</h2>
+        <p class="theme-text-muted">Layer 2 broadcast domains scoped per site.</p>
+    </div>
+    <a href="{% url 'vlan_create' %}" class="btn btn-primary shadow-sm">
+        <i class="fas fa-plus me-1"></i> Add VLAN
+    </a>
+</div>
+
+<div class="card activity-card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4">ID</th>
+                        <th>Name</th>
+                        <th>Site / Data Center</th>
+                        <th>Status</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for vlan in vlans %}
+                    <tr class="theme-table-row">
+                        <td class="ps-4 fw-bold text-primary">VLAN {{ vlan.vid }}</td>
+                        <td class="theme-text-main">{{ vlan.name }}</td>
+                        <td>{{ vlan.data_center.name|default:"Global" }}</td>
+                        <td>
+                            <span class="badge {% if vlan.status == 'ACTIVE' %}bg-success{% else %}bg-secondary{% endif %} rounded-pill">
+                                {{ vlan.status }}
+                            </span>
+                        </td>
+                        <td class="text-end pe-4">
+                            <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="text-center py-5 theme-text-muted">No VLANs defined.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
