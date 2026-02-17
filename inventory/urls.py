@@ -19,6 +19,9 @@ urlpatterns = [
     path('ips/<int:pk>/edit/', views.IPAddressUpdateView.as_view(), name='ip_update'),
     path('ips/<int:pk>/delete/', views.IPAddressDeleteView.as_view(), name='ip_delete'),
 
+    # IPAM API: Dynamic available IP lookup for the allocation form
+    path('ips/available/<int:prefix_id>/', views.GetAvailableIPsView.as_view(), name='get_available_ips'),
+
     path('vlans/', views.VLANListView.as_view(), name='vlan_list'),
     path('vlans/add/', views.VLANCreateView.as_view(), name='vlan_create'),
     path('vlans/<int:pk>/edit/', views.VLANUpdateView.as_view(), name='vlan_update'),

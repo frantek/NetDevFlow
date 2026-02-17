@@ -125,6 +125,18 @@
         /* --- GLOBAL FORM STYLING --- 
            Fixes interactivity and visibility for input/select menus
         */
+         /* --- Global Form Vibe Fixes --- */
+        .form-text, .text-muted, .help-text { 
+            color: var(--text-muted) !important; 
+            font-size: 0.85rem;
+        }
+
+        /* Adjusting opacity specifically for dark mode help text to increase legibility */
+        [data-theme="dark"] .form-text.opacity-75 {
+            opacity: 0.9 !important;
+            color: var(--text-main) !important;
+        }
+
         .form-control, .form-select {
             background-color: var(--bg-card) !important;
             color: var(--text-main) !important;

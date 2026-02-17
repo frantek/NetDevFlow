@@ -1,4 +1,5 @@
 import json
+import ipaddress
 from django.shortcuts import render, get_object_or_404
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.views import View
@@ -384,6 +385,13 @@ class IPAddressCreateView(LoginRequiredMixin, TechRequiredMixin, CreateView):
     template_name = 'inventory/ip_form.html'
     success_url = reverse_lazy('ip_list')
 
+    def get_context_data(self, **kwargs):
+        """Inject prefixes enriched with VRF and VLAN data for better selection context."""
+        context = super().get_context_data(**kwargs)
+        # Optimized lookup including VLAN and VRF for the select form
+        context['prefixes'] = Prefix.objects.select_related('vrf', 'vlan', 'site').all()
+        return context
+
     def get_initial(self):
         initial = super().get_initial()
         prefix_id = self.request.GET.get('prefix')
@@ -393,7 +401,7 @@ class IPAddressCreateView(LoginRequiredMixin, TechRequiredMixin, CreateView):
         return initial
 
     def form_valid(self, form):
-        messages.success(self.request, f"IP Address {form.instance.address} successfully allocated.")
+        messages.success(self.request, f"IP {form.instance.address} successfully assigned.")
         return super().form_valid(form)
 
 class IPAddressUpdateView(LoginRequiredMixin, TechRequiredMixin, UpdateView):
@@ -401,6 +409,13 @@ class IPAddressUpdateView(LoginRequiredMixin, TechRequiredMixin, UpdateView):
     form_class = IPAddressForm
     template_name = 'inventory/ip_form.html'
     success_url = reverse_lazy('ip_list')
+
+    def get_context_data(self, **kwargs):
+        """Ensure prefixes are available when editing an existing allocation."""
+        context = super().get_context_data(**kwargs)
+        # Including VLAN and VRF context for technicians
+        context['prefixes'] = Prefix.objects.select_related('vrf', 'vlan', 'site').all()
+        return context
 
     def form_valid(self, form):
         messages.info(self.request, f"Allocation for {form.instance.address} updated.")
@@ -427,6 +442,12 @@ class GetAvailableIPsView(LoginRequiredMixin, View):
             # Fetch all currently assigned IPs in the system
             used_ips = set(IPAddress.objects.values_list('address', flat=True))
             
+            # Logic: If we are updating an existing IP, we must allow the current IP
+            # to be visible in the 'available' list.
+            exclude_ip = request.GET.get('exclude')
+            if exclude_ip and exclude_ip in used_ips:
+                used_ips.remove(exclude_ip)
+            
             available_ips = []
             # Only return the first 100 available to prevent browser hang on large subnets
             for ip in network.hosts():
@@ -436,7 +457,12 @@ class GetAvailableIPsView(LoginRequiredMixin, View):
                     if len(available_ips) >= 100:
                         break
             
-            return JsonResponse({'status': 'success', 'available_ips': available_ips})
+            return JsonResponse({
+                'status': 'success', 
+                'available_ips': available_ips,
+                'network': str(network.network_address),
+                'mask': str(network.netmask)
+            })
         except ValueError:
             return JsonResponse({'status': 'error', 'message': 'Invalid Prefix format'}, status=400)
 

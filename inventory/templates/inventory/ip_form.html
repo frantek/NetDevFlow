@@ -17,16 +17,18 @@
 <form method="post">
 {% csrf_token %}
 
-                <!-- Prefix Selection (Triggers the dynamic IP lookup) -->
+                <!-- Prefix Selection (Triggers the dynamic IP lookup in GetAvailableIPsView) -->
                 <div class="mb-3">
-                    <label class="form-label fw-bold small text-uppercase theme-text-muted">Network Prefix</label>
-                    <select id="prefix-selector" class="form-select">
-                        <option value="">-- Select a Prefix --</option>
+                    <label class="form-label fw-bold small text-uppercase theme-text-muted">Network Prefix Range</label>
+                    <select id="prefix-selector" class="form-select shadow-sm border-primary">
+                        <option value="">-- Select a Subnet --</option>
                         {% for prefix in prefixes %}
-                            <option value="{{ prefix.id }}">{{ prefix.prefix }} ({{ prefix.vrf.name|default:"Global" }})</option>
+                            <option value="{{ prefix.id }}" {% if object.prefix == prefix %}selected{% endif %}>
+                                {{ prefix.prefix }} ({{ prefix.vrf.name|default:"Global" }}) - {{ prefix.site.name|default:"All Sites" }}
+                            </option>
                         {% endfor %}
                     </select>
-                    <div class="form-text small opacity-75">Choosing a prefix will filter available IP addresses.</div>
+                    <div class="form-text small opacity-75">Choosing a prefix will query the database for free host addresses.</div>
                 </div>
 
                 <hr class="my-4 opacity-10">
@@ -38,7 +40,7 @@
                     </label>
 
                     {% if field.name == 'address' %}
-                        <!-- Replace standard input with dynamic dropdown -->
+                        <!-- Custom dropdown that populates via the GetAvailableIPsView API -->
                         <select name="{{ field.name }}" id="{{ field.id_for_label }}" class="form-select" required>
                             <option value="">Select a prefix first...</option>
                             {% if object %}
@@ -60,7 +62,7 @@
 
                 <div class="d-grid gap-2 mt-4">
                     <button type="submit" class="btn btn-primary btn-lg shadow-sm">
-                        {% if object %}Update Allocation{% else %}Confirm Allocation{% endif %}
+                        {% if object %}Update Assignment{% else %}Confirm Allocation{% endif %}
                     </button>
                     <a href="{% url 'ip_list' %}" class="btn btn-link theme-text-muted">Bail / Cancel</a>
                 </div>
@@ -75,49 +77,57 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
 const prefixSelector = document.getElementById('prefix-selector');
-const ipSelector = document.getElementById('id_address'); // Matches Django's default ID for 'address' field
+const ipSelector = document.getElementById('id_address'); // Standard Django ID for 'address'
 
-    prefixSelector.addEventListener(&#39;change&#39;, async function() {
-        const prefixId = this.value;
-        
-        // Clear current options
-        ipSelector.innerHTML = &#39;&lt;option value=&quot;&quot;&gt;Loading available IPs...&lt;/option&gt;&#39;;
-        ipSelector.disabled = true;
+// Capture current IP for 'exclude' logic in UpdateView
+const currentIp = "{% if object %}{{ object.address }}{% endif %}";
 
-        if (!prefixId) {
-            ipSelector.innerHTML = &#39;&lt;option value=&quot;&quot;&gt;Select a prefix first...&lt;/option&gt;&#39;;
-            return;
-        }
+async function fetchAvailableIPs(prefixId) {
+    if (!prefixId) {
+        ipSelector.innerHTML = '<option value="">Select a prefix first...</option>';
+        return;
+    }
 
-        try {
-            // Fetch available IPs from the GetAvailableIPsView in the Canvas
-            const response = await fetch(`/ips/available/${prefixId}/`);
-            const data = await response.json();
+    ipSelector.innerHTML = '<option value="">Searching for free IPs...</option>';
+    ipSelector.disabled = true;
 
-            if (data.status === &#39;success&#39;) {
-                ipSelector.innerHTML = &#39;&#39;;
-                if (data.available_ips.length === 0) {
-                    ipSelector.innerHTML = &#39;&lt;option value=&quot;&quot;&gt;No free IPs in this range&lt;/option&gt;&#39;;
-                } else {
-                    data.available_ips.forEach(ip =&gt; {
-                        const option = document.createElement(&#39;option&#39;);
-                        option.value = ip;
-                        option.textContent = ip;
-                        ipSelector.appendChild(option);
-                    });
-                    ipSelector.disabled = false;
-                }
+    try {
+        // We pass the currentIp as an 'exclude' parameter so it remains selectable during edits
+        const url = `/ips/available/${prefixId}/?exclude=${encodeURIComponent(currentIp)}`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.status === 'success') {
+            ipSelector.innerHTML = '';
+            if (data.available_ips.length === 0) {
+                ipSelector.innerHTML = '<option value="">Subnet is full (No free IPs)</option>';
             } else {
-                ipSelector.innerHTML = `&lt;option value=&quot;&quot;&gt;Error: ${data.message}&lt;/option&gt;`;
+                data.available_ips.forEach(ip => {
+                    const option = document.createElement('option');
+                    option.value = ip;
+                    option.textContent = ip;
+                    if (ip === currentIp) option.selected = true;
+                    ipSelector.appendChild(option);
+                });
+                ipSelector.disabled = false;
             }
-        } catch (error) {
-            ipSelector.innerHTML = &#39;&lt;option value=&quot;&quot;&gt;Network error fetching IPs&lt;/option&gt;&#39;;
-            console.error(&#39;IPAM Fetch Error:&#39;, error);
+        } else {
+            ipSelector.innerHTML = `<option value="">Error: ${data.message}</option>`;
         }
-    });
+    } catch (error) {
+        ipSelector.innerHTML = '<option value="">Network failure: check API view</option>';
+    }
+}
+
+prefixSelector.addEventListener('change', (e) => fetchAvailableIPs(e.target.value));
+
+// Trigger on load if we're in Update mode
+if (prefixSelector.value) {
+    fetchAvailableIPs(prefixSelector.value);
+}
+
+
 });
-
-
 </script>
 
 <style>
@@ -126,11 +136,6 @@ const ipSelector = document.getElementById('id_address'); // Matches Django's de
 .activity-card {
 background-color: var(--bg-card) !important;
 border: 1px solid var(--border-color) !important;
-}
-.form-control, .form-select {
-background-color: var(--bg-body) !important;
-border-color: var(--border-color) !important;
-color: var(--text-main) !important;
 }
 </style>
 
