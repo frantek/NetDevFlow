@@ -34,34 +34,42 @@
     <form method="post" id="ticket-form">
         {% csrf_token %}
         
+        {% if form.errors %}
+            <div class="alert alert-danger mb-4">
+                <p class="fw-bold mb-1">Please correct the following errors:</p>
+                <ul class="mb-0 small">
+                    {% for field, errors in form.errors.items %}
+                        <li>{{ field|title }}: {{ errors|striptags }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
         <div class="row g-4">
             <!-- Left Column: The Timeline/Thread -->
             <div class="col-lg-9">
                 
                 {% if object %}
-                    <!-- Original Post -->
-                    <div class="timeline-item mb-4">
-                        <div class="card border-theme activity-card shadow-sm">
-                            <div class="card-header bg-body-tertiary py-2 px-3 border-bottom border-theme d-flex justify-content-between align-items-center">
-                                <span class="small fw-bold theme-text-main">{{ object.created_by.username|default:"Original Reporter" }} commented</span>
-                                <span class="badge bg-light text-dark border small">Author</span>
-                            </div>
-                            <div class="card-body p-4 theme-text-main markdown-body" id="original-content">
-                                {{ object.description|safe }}
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Previous Updates Stream -->
-                    {% for update in object.updates.all %}
-                        <div class="timeline-item mb-4 ps-4 border-start border-2 border-theme position-relative">
-                            <div class="timeline-dot"></div>
+                    <!-- The Thread: Chronological stream of activity -->
+                    {% for item in object.get_timeline %}
+                        <div class="timeline-item mb-4 {% if not item.is_root %}ps-4 border-start border-2 border-theme position-relative{% endif %}">
+                            {% if not item.is_root %}<div class="timeline-dot"></div>{% endif %}
+                            
                             <div class="card border-theme activity-card shadow-sm">
                                 <div class="card-header bg-body-tertiary py-2 px-3 border-bottom border-theme d-flex justify-content-between align-items-center">
-                                    <span class="small theme-text-main"><strong>{{ update.author.username }}</strong> updated this {{ update.created_at|timesince }} ago</span>
+                                    <span class="small fw-bold theme-text-main">
+                                        {{ item.author.username|default:"Technician" }} 
+                                        {% if item.is_root %}commented{% else %}updated this{% endif %}
+                                    </span>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="theme-text-muted tiny">{{ item.timestamp|timesince }} ago</span>
+                                        {% if item.is_root %}
+                                            <span class="badge bg-light text-dark border tiny">Author</span>
+                                        {% endif %}
+                                    </div>
                                 </div>
-                                <div class="card-body p-3 theme-text-main markdown-body">
-                                    {{ update.comment|safe }}
+                                <div class="card-body p-4 theme-text-main markdown-body js-markdown-content">
+                                    {{ item.content }}
                                 </div>
                             </div>
                         </div>
@@ -79,7 +87,7 @@
                     </div>
                 {% endif %}
 
-                <!-- Tabbed Editor (For New Ticket or New Update) -->
+                <!-- Tabbed Editor -->
                 <div class="card border-theme activity-card overflow-hidden shadow-sm">
                     <div class="card-header bg-body-tertiary p-0 border-bottom border-theme">
                         <ul class="nav nav-tabs border-0 px-3 pt-2" id="editorTabs" role="tablist">
@@ -99,7 +107,8 @@
                     </div>
                     <div class="tab-content" id="editorContent">
                         <div class="tab-pane fade show active" id="write" role="tabpanel">
-                            <textarea name="description" id="id_description" 
+                            <!-- Dynamic field naming: 'comment' for updates, 'description' for new tickets -->
+                            <textarea name="{% if object %}comment{% else %}description{% endif %}" id="id_description" 
                                       class="form-control border-0 bg-transparent p-3 font-monospace theme-text-main" 
                                       style="min-height: 250px; resize: vertical;" 
                                       placeholder="{% if object %}What's the latest progress?{% else %}Describe the technical issue...{% endif %} (Markdown & Paste supported)">{% if not object %}{{ form.description.value|default:'' }}{% endif %}</textarea>
@@ -138,8 +147,6 @@
             <!-- Right Column: Metadata Sidebar -->
             <div class="col-lg-3">
                 <div class="sticky-top" style="top: 100px; z-index: 10;">
-                    
-                    <!-- Status (Visible only on edit) -->
                     {% if object %}
                     <div class="mb-4 pb-3 border-bottom border-theme">
                         <label class="d-block small fw-bold theme-text-muted text-uppercase mb-2">Update Status</label>
@@ -147,13 +154,11 @@
                     </div>
                     {% endif %}
 
-                    <!-- Severity -->
                     <div class="mb-4 pb-3 border-bottom border-theme">
                         <label class="d-block small fw-bold theme-text-muted text-uppercase mb-2">Severity</label>
                         {{ form.severity }}
                     </div>
 
-                    <!-- Target Device -->
                     <div class="mb-4 pb-3 border-bottom border-theme">
                         <label class="d-block small fw-bold theme-text-muted text-uppercase mb-2">Linked Hardware</label>
                         {{ form.device }}
@@ -166,13 +171,11 @@
                         {% endif %}
                     </div>
 
-                    <!-- Assignee -->
                     <div class="mb-4 pb-3 border-bottom border-theme">
                         <label class="d-block small fw-bold theme-text-muted text-uppercase mb-2">Assigned Technician</label>
                         {{ form.assigned_to }}
                     </div>
 
-                    <!-- Participants/History -->
                     <div class="p-3 bg-body-tertiary rounded border border-theme">
                         <h6 class="small fw-bold theme-text-muted text-uppercase mb-3">Audit Trail</h6>
                         <div class="small theme-text-muted">
@@ -186,7 +189,6 @@
     </form>
 </div>
 
-<!-- Scripts for WYSIWYG/Markdown Logic -->
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <style>
     .active-tab-indicator.active { border-bottom: 2px solid var(--accent-primary) !important; color: var(--accent-primary) !important; }
@@ -194,8 +196,8 @@
     .markdown-body h1, .markdown-body h2 { border-bottom: 1px solid var(--border-color); padding-bottom: 0.3em; margin-top: 1rem; margin-bottom: 0.5rem; }
     .markdown-body img { max-width: 100%; border-radius: 8px; border: 1px solid var(--border-color); margin: 10px 0; }
     .border-theme { border-color: var(--border-color) !important; }
+    .tiny { font-size: 0.7rem; }
     
-    /* Timeline styling */
     .timeline-dot {
         position: absolute;
         left: -5px;
@@ -206,11 +208,6 @@
         border-radius: 50%;
         box-shadow: 0 0 0 4px var(--bg-body);
     }
-    
-    .editor-toolbar .btn-link { text-decoration: none; padding: 4px 8px; }
-    .editor-toolbar .btn-link:hover { background-color: var(--bg-body); color: var(--accent-primary) !important; }
-
-    .form-select, .form-control { border-radius: 6px; font-size: 0.9rem; }
 </style>
 
 <script>
@@ -219,14 +216,15 @@
         const previewDiv = document.getElementById('markdown-preview');
         const previewTab = document.getElementById('preview-tab');
 
-        // Render original markdown content if editing
-        const originalBody = document.getElementById('original-content');
-        if (originalBody && originalBody.innerText.trim()) {
-            originalBody.innerHTML = marked.parse(originalBody.innerText);
-        }
-
         // Configure marked
         marked.setOptions({ gfm: true, breaks: true });
+
+        // Render existing thread items
+        document.querySelectorAll('.js-markdown-content').forEach(el => {
+            if (el.innerText.trim()) {
+                el.innerHTML = marked.parse(el.innerText);
+            }
+        });
 
         // Handle Preview Tab
         previewTab.addEventListener('click', () => {
@@ -234,7 +232,6 @@
             previewDiv.innerHTML = rawValue.trim() === '' ? '<span class="theme-text-muted italic">Nothing to preview</span>' : marked.parse(rawValue);
         });
 
-        // WYSIWYG Helpers
         window.insertAtCursor = (startTag, endTag) => {
             const start = textarea.selectionStart;
             const end = textarea.selectionEnd;
@@ -249,7 +246,6 @@
             if (url) insertAtCursor(`![Image description](${url})`, "");
         };
 
-        // Handle Paste for Images
         textarea.addEventListener('paste', function(e) {
             const items = (e.clipboardData || e.originalEvent.clipboardData).items;
             for (let index in items) {

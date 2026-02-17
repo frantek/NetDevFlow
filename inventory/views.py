@@ -8,7 +8,7 @@ from django.urls import reverse_lazy
 from django.db.models import Count
 from django.http import JsonResponse
 from django.core.exceptions import ObjectDoesNotExist
-from .models import Device, IPAddress, MaintenanceTicket, Profile, Rack, DataCenter, Row
+from .models import Device, IPAddress, MaintenanceTicket, Profile, Rack, DataCenter, Row, TicketUpdate
 
 # --- Role-Based Access Mixins ---
 
@@ -328,16 +328,35 @@ class TicketCreateView(LoginRequiredMixin, TechOrManagerRequiredMixin, CreateVie
         return super().form_valid(form)
 
 class TicketUpdateView(LoginRequiredMixin, TechOrManagerRequiredMixin, UpdateView):
+    """
+    Enhanced View to handle GitHub-style threading.
+    Updates the Ticket metadata and creates a new TicketUpdate sub-post.
+    """
     model = MaintenanceTicket
-    fields = ['status', 'description', 'assigned_to']
     template_name = 'inventory/ticket_form.html'
-    
-    def get_success_url(self):
-        return reverse_lazy('kanban_board')
+    # We exclude 'description' here because we don't want to edit the root post
+    fields = ['status', 'severity', 'assigned_to', 'device']
+    success_url = reverse_lazy('kanban_board')
 
     def form_valid(self, form):
-        messages.success(self.request, f"Ticket #{self.object.id} updated.")
-        return super().form_valid(form)
+        # 1. Save the metadata changes (Status, Severity, etc.)
+        response = super().form_valid(form)
+        
+        # 2. Extract the 'comment' from the POST data
+        comment_text = self.request.POST.get('comment')
+        
+        if comment_text and comment_text.strip():
+            # 3. Create the new sub-post (TicketUpdate)
+            TicketUpdate.objects.create(
+                ticket=self.object,
+                author=self.request.user,
+                comment=comment_text
+            )
+            messages.success(self.request, "Progress update posted to the thread.")
+        else:
+            messages.info(self.request, "Ticket metadata updated.")
+            
+        return response
 
 # --- Custom Error Handlers (LO1.1 & UX Enhancement) ---
 

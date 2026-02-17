@@ -178,6 +178,32 @@ class MaintenanceTicket(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+    @property
+    def latest_activity(self):
+        """Returns the most recent update comment, falling back to the original description."""
+        last_update = self.updates.order_by('-created_at').first()
+        return last_update.comment if last_update else self.description
+
+    def get_timeline(self):
+        """
+        Returns a sorted list of all activity (Root description + Updates).
+        Useful for rendering a GitHub-style issue thread.
+        """
+        timeline = [{
+            'author': self.created_by,
+            'content': self.description,
+            'timestamp': self.created_at,
+            'is_root': True
+        }]
+        for update in self.updates.all():
+            timeline.append({
+                'author': update.author,
+                'content': update.comment,
+                'timestamp': update.created_at,
+                'is_root': False
+            })
+        # Sort by timestamp to ensure chronological order
+        return sorted(timeline, key=lambda x: x['timestamp'])
 
     def __str__(self):
         return f"#{self.id}: {self.title}"
