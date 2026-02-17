@@ -1,44 +1,272 @@
 {% extends 'base.html' %}
 
-{% block title %}{% if object %}Update{% else %}Create{% endif %} Ticket | NetDevFlow{% endblock %}
+{% block title %}{% if object %}Ticket #{{ object.id }}: {{ object.title }}{% else %}New Maintenance Ticket{% endif %} | NetDevFlow{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white py-3 text-center border-bottom">
-                <h4 class="mb-0 fw-bold">
-                    {% if object %}Update Ticket #{{ object.id }}{% else %}New Maintenance Ticket{% endif %}
-                </h4>
-            </div>
-            <div class="card-body p-4">
-                <form method="post">
-                    {% csrf_token %}
-                    
-                    {% for field in form %}
-                    <div class="mb-3">
-                        <label for="{{ field.id_for_label }}" class="form-label fw-bold small text-uppercase">
-                            {{ field.label }}
-                        </label>
-                        {{ field }}
-                        {% if field.help_text %}
-                            <div class="form-text small">{{ field.help_text }}</div>
-                        {% endif %}
-                        {% if field.errors %}
-                            <div class="text-danger small mt-1">{{ field.errors.as_text }}</div>
-                        {% endif %}
+<div class="container py-4">
+    <!-- Header Section: GitHub Issue Style -->
+    {% if object %}
+        <div class="mb-4 pb-3 border-bottom border-theme">
+            <div class="d-flex justify-content-between align-items-start flex-wrap">
+                <div>
+                    <h1 class="fw-bold theme-text-main mb-1">
+                        {{ object.title }} <span class="theme-text-muted fw-light">#{{ object.id }}</span>
+                    </h1>
+                    <div class="d-flex align-items-center gap-2 mt-2">
+                        <span class="badge rounded-pill {% if object.status == 'OPEN' %}bg-success{% elif object.status == 'IN_PROGRESS' %}bg-primary{% else %}bg-secondary{% endif %} px-3 py-2">
+                            <i class="fas {% if object.status == 'OPEN' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} me-1"></i>
+                            {{ object.get_status_display }}
+                        </span>
+                        <span class="theme-text-muted small">
+                            <strong>{{ object.created_by.username|default:"System" }}</strong> opened this ticket {{ object.created_at|timesince }} ago · {{ object.updates.count }} updates
+                        </span>
                     </div>
-                    {% endfor %}
-
-                    <div class="d-grid gap-2 mt-4">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            {% if object %}Save Changes{% else %}Create Ticket{% endif %}
-                        </button>
-                        <a href="javascript:history.back()" class="btn btn-link text-muted">Cancel</a>
-                    </div>
-                </form>
+                </div>
+                {% if user.profile.role == 'MANAGER' %}
+                <a href="{% url 'device_confirm_delete' object.id %}" class="btn btn-outline-danger btn-sm">
+                    <i class="fas fa-trash-alt me-1"></i> Close & Decommission
+                </a>
+                {% endif %}
             </div>
         </div>
-    </div>
+    {% endif %}
+
+    <form method="post" id="ticket-form">
+        {% csrf_token %}
+        
+        <div class="row g-4">
+            <!-- Left Column: The Timeline/Thread -->
+            <div class="col-lg-9">
+                
+                {% if object %}
+                    <!-- Original Post -->
+                    <div class="timeline-item mb-4">
+                        <div class="card border-theme activity-card shadow-sm">
+                            <div class="card-header bg-body-tertiary py-2 px-3 border-bottom border-theme d-flex justify-content-between align-items-center">
+                                <span class="small fw-bold theme-text-main">{{ object.created_by.username|default:"Original Reporter" }} commented</span>
+                                <span class="badge bg-light text-dark border small">Author</span>
+                            </div>
+                            <div class="card-body p-4 theme-text-main markdown-body" id="original-content">
+                                {{ object.description|safe }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Previous Updates Stream -->
+                    {% for update in object.updates.all %}
+                        <div class="timeline-item mb-4 ps-4 border-start border-2 border-theme position-relative">
+                            <div class="timeline-dot"></div>
+                            <div class="card border-theme activity-card shadow-sm">
+                                <div class="card-header bg-body-tertiary py-2 px-3 border-bottom border-theme d-flex justify-content-between align-items-center">
+                                    <span class="small theme-text-main"><strong>{{ update.author.username }}</strong> updated this {{ update.created_at|timesince }} ago</span>
+                                </div>
+                                <div class="card-body p-3 theme-text-main markdown-body">
+                                    {{ update.comment|safe }}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+
+                    <h5 class="fw-bold theme-text-main mt-5 mb-3"><i class="fas fa-reply me-2 text-primary"></i>Post an Update</h5>
+                {% else %}
+                    <!-- Creation Mode Title Input -->
+                    <div class="mb-4">
+                        <input type="text" name="title" id="id_title" 
+                               class="form-control form-control-lg fw-bold border-0 bg-transparent ps-0 theme-text-main" 
+                               placeholder="Ticket Title" 
+                               value="{{ form.title.value|default:'' }}" required>
+                        <hr class="mt-1 border-theme">
+                    </div>
+                {% endif %}
+
+                <!-- Tabbed Editor (For New Ticket or New Update) -->
+                <div class="card border-theme activity-card overflow-hidden shadow-sm">
+                    <div class="card-header bg-body-tertiary p-0 border-bottom border-theme">
+                        <ul class="nav nav-tabs border-0 px-3 pt-2" id="editorTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active border-0 bg-transparent theme-text-main py-2 px-3 fw-semibold small active-tab-indicator" 
+                                        id="write-tab" data-bs-toggle="tab" data-bs-target="#write" type="button" role="tab">
+                                    Write
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link border-0 bg-transparent theme-text-muted py-2 px-3 fw-semibold small" 
+                                        id="preview-tab" data-bs-toggle="tab" data-bs-target="#preview" type="button" role="tab">
+                                    Preview
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="tab-content" id="editorContent">
+                        <div class="tab-pane fade show active" id="write" role="tabpanel">
+                            <textarea name="description" id="id_description" 
+                                      class="form-control border-0 bg-transparent p-3 font-monospace theme-text-main" 
+                                      style="min-height: 250px; resize: vertical;" 
+                                      placeholder="{% if object %}What's the latest progress?{% else %}Describe the technical issue...{% endif %} (Markdown & Paste supported)">{% if not object %}{{ form.description.value|default:'' }}{% endif %}</textarea>
+                            
+                            <div class="bg-body-tertiary px-3 py-2 border-top border-theme d-flex justify-content-between align-items-center flex-wrap">
+                                <div class="small theme-text-muted">
+                                    <i class="fab fa-markdown me-1"></i> Markdown enabled
+                                </div>
+                                <div class="editor-toolbar d-flex flex-wrap gap-1">
+                                    <button type="button" class="btn btn-sm btn-link theme-text-muted" onclick="insertAtCursor('**', '**')"><i class="fas fa-bold"></i></button>
+                                    <button type="button" class="btn btn-sm btn-link theme-text-muted" onclick="insertAtCursor('_', '_')"><i class="fas fa-italic"></i></button>
+                                    <button type="button" class="btn btn-sm btn-link theme-text-muted" onclick="insertAtCursor('`', '`')"><i class="fas fa-code"></i></button>
+                                    <button type="button" class="btn btn-sm btn-link theme-text-muted" onclick="insertAtCursor('- ', '')"><i class="fas fa-list-ul"></i></button>
+                                    <button type="button" class="btn btn-sm btn-link theme-text-muted" onclick="insertImage()"><i class="fas fa-image"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="preview" role="tabpanel">
+                            <div id="markdown-preview" class="p-4 theme-text-main markdown-body" style="min-height: 300px; overflow-y: auto;">
+                                <span class="theme-text-muted italic">Nothing to preview</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 d-flex align-items-center justify-content-between">
+                    <a href="{% url 'kanban_board' %}" class="btn btn-link theme-text-muted text-decoration-none">
+                        <i class="fas fa-arrow-left me-1"></i> Back to Kanban
+                    </a>
+                    <button type="submit" class="btn btn-primary px-5 fw-bold shadow-sm">
+                        {% if object %}Post Update{% else %}Create Ticket{% endif %}
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Column: Metadata Sidebar -->
+            <div class="col-lg-3">
+                <div class="sticky-top" style="top: 100px; z-index: 10;">
+                    
+                    <!-- Status (Visible only on edit) -->
+                    {% if object %}
+                    <div class="mb-4 pb-3 border-bottom border-theme">
+                        <label class="d-block small fw-bold theme-text-muted text-uppercase mb-2">Update Status</label>
+                        {{ form.status }}
+                    </div>
+                    {% endif %}
+
+                    <!-- Severity -->
+                    <div class="mb-4 pb-3 border-bottom border-theme">
+                        <label class="d-block small fw-bold theme-text-muted text-uppercase mb-2">Severity</label>
+                        {{ form.severity }}
+                    </div>
+
+                    <!-- Target Device -->
+                    <div class="mb-4 pb-3 border-bottom border-theme">
+                        <label class="d-block small fw-bold theme-text-muted text-uppercase mb-2">Linked Hardware</label>
+                        {{ form.device }}
+                        {% if object.device %}
+                        <div class="mt-2 small">
+                            <a href="{% url 'device_detail' object.device.id %}" class="text-decoration-none">
+                                <i class="fas fa-external-link-alt me-1"></i> View {{ object.device.hostname }}
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Assignee -->
+                    <div class="mb-4 pb-3 border-bottom border-theme">
+                        <label class="d-block small fw-bold theme-text-muted text-uppercase mb-2">Assigned Technician</label>
+                        {{ form.assigned_to }}
+                    </div>
+
+                    <!-- Participants/History -->
+                    <div class="p-3 bg-body-tertiary rounded border border-theme">
+                        <h6 class="small fw-bold theme-text-muted text-uppercase mb-3">Audit Trail</h6>
+                        <div class="small theme-text-muted">
+                            <div class="mb-2"><i class="fas fa-plus-square me-2"></i> Created: {{ object.created_at|date:"M d, Y" }}</div>
+                            <div class="mb-0"><i class="fas fa-sync me-2"></i> Last Sync: {{ object.updated_at|timesince }} ago</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
 </div>
+
+<!-- Scripts for WYSIWYG/Markdown Logic -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+    .active-tab-indicator.active { border-bottom: 2px solid var(--accent-primary) !important; color: var(--accent-primary) !important; }
+    .markdown-body { line-height: 1.6; word-wrap: break-word; }
+    .markdown-body h1, .markdown-body h2 { border-bottom: 1px solid var(--border-color); padding-bottom: 0.3em; margin-top: 1rem; margin-bottom: 0.5rem; }
+    .markdown-body img { max-width: 100%; border-radius: 8px; border: 1px solid var(--border-color); margin: 10px 0; }
+    .border-theme { border-color: var(--border-color) !important; }
+    
+    /* Timeline styling */
+    .timeline-dot {
+        position: absolute;
+        left: -5px;
+        top: 15px;
+        width: 10px;
+        height: 10px;
+        background: var(--accent-primary);
+        border-radius: 50%;
+        box-shadow: 0 0 0 4px var(--bg-body);
+    }
+    
+    .editor-toolbar .btn-link { text-decoration: none; padding: 4px 8px; }
+    .editor-toolbar .btn-link:hover { background-color: var(--bg-body); color: var(--accent-primary) !important; }
+
+    .form-select, .form-control { border-radius: 6px; font-size: 0.9rem; }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const textarea = document.getElementById('id_description');
+        const previewDiv = document.getElementById('markdown-preview');
+        const previewTab = document.getElementById('preview-tab');
+
+        // Render original markdown content if editing
+        const originalBody = document.getElementById('original-content');
+        if (originalBody && originalBody.innerText.trim()) {
+            originalBody.innerHTML = marked.parse(originalBody.innerText);
+        }
+
+        // Configure marked
+        marked.setOptions({ gfm: true, breaks: true });
+
+        // Handle Preview Tab
+        previewTab.addEventListener('click', () => {
+            const rawValue = textarea.value;
+            previewDiv.innerHTML = rawValue.trim() === '' ? '<span class="theme-text-muted italic">Nothing to preview</span>' : marked.parse(rawValue);
+        });
+
+        // WYSIWYG Helpers
+        window.insertAtCursor = (startTag, endTag) => {
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            textarea.value = text.substring(0, start) + startTag + text.substring(start, end) + endTag + text.substring(end);
+            textarea.focus();
+            textarea.setSelectionRange(start + startTag.length, end + startTag.length);
+        };
+
+        window.insertImage = () => {
+            const url = prompt("Enter image URL:");
+            if (url) insertAtCursor(`![Image description](${url})`, "");
+        };
+
+        // Handle Paste for Images
+        textarea.addEventListener('paste', function(e) {
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            for (let index in items) {
+                const item = items[index];
+                if (item.kind === 'file' && item.type.indexOf('image/') !== -1) {
+                    const blob = item.getAsFile();
+                    const reader = new FileReader();
+                    const placeholder = "![Uploading image...]()";
+                    insertAtCursor(placeholder, "");
+                    reader.onload = (event) => {
+                        textarea.value = textarea.value.replace(placeholder, `![Pasted Image](${event.target.result})`);
+                        if (previewTab.classList.contains('active')) previewDiv.innerHTML = marked.parse(textarea.value);
+                    };
+                    reader.readAsDataURL(blob);
+                }
+            }
+        });
+    });
+</script>
 {% endblock %}

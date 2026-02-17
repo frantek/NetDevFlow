@@ -148,6 +148,7 @@ class IPAddress(models.Model):
     def __str__(self):
         return self.address
 
+# --- Ticket Threading & Maintenance Models ---
 
 class MaintenanceTicket(models.Model):
     """
@@ -180,3 +181,19 @@ class MaintenanceTicket(models.Model):
 
     def __str__(self):
         return f"#{self.id}: {self.title}"
+
+class TicketUpdate(models.Model):
+    """
+    Represents a single update or comment in a ticket's timeline.
+    This enables the GitHub-style issue thread functionality.
+    """
+    ticket = models.ForeignKey(MaintenanceTicket, on_delete=models.CASCADE, related_name='updates')
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    comment = models.TextField(help_text="The content of the update (Markdown supported).")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"Update by {self.author.username} on #{self.ticket.id}"
