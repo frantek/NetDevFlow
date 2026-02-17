@@ -1,11 +1,23 @@
 from django import forms
-from .models import Device, IPAddress, MaintenanceTicket, DataCenter, Row, Rack
-from .models import VLAN, VRF, Prefix
+
+from .models import (
+    VLAN,
+    VRF,
+    DataCenter,
+    Device,
+    IPAddress,
+    MaintenanceTicket,
+    Prefix,
+    Rack,
+    Row,
+)
+
 
 class DeviceForm(forms.ModelForm):
     """
     Advanced DCIM form featuring physical placement and dimension tracking.
     """
+
     class Meta:
         model = Device
         fields = ['hostname', 'model_name', 'device_type', 'status', 'rack', 'position', 'size', 'device_image']
@@ -23,7 +35,9 @@ class DeviceForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Order racks by full DC path
-        self.fields['rack'].queryset = Rack.objects.select_related('row__data_center').order_by('row__data_center__name', 'row__name', 'name')
+        self.fields['rack'].queryset = Rack.objects.select_related('row__data_center').order_by(
+            'row__data_center__name', 'row__name', 'name'
+        )
 
 
 class RackForm(forms.ModelForm):
@@ -36,17 +50,21 @@ class RackForm(forms.ModelForm):
             'ru_capacity': forms.NumberInput(attrs={'class': 'form-control'}),
         }
 
+
 class TicketForm(forms.ModelForm):
     """
     Form for logging and updating maintenance incidents.
     Linked to specific devices in the inventory.
     """
+
     class Meta:
         model = MaintenanceTicket
         fields = ['title', 'description', 'severity', 'status', 'device', 'assigned_to']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Brief summary of the issue'}),
-            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Detailed technical logs...'}),
+            'description': forms.Textarea(
+                attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Detailed technical logs...'}
+            ),
             'severity': forms.Select(attrs={'class': 'form-select'}),
             'status': forms.Select(attrs={'class': 'form-select'}),
             'device': forms.Select(attrs={'class': 'form-select'}),
@@ -64,6 +82,7 @@ class IPAddressForm(forms.ModelForm):
     Validated IPAM form for assigning and validating network addresses.
     Includes custom validation to ensure formatting is correct.
     """
+
     class Meta:
         model = IPAddress
         fields = ['address', 'vrf', 'device', 'is_primary']
@@ -84,6 +103,7 @@ class IPAddressForm(forms.ModelForm):
         # Logic for checking reserved ranges or leading zeros could go here.
         return address
 
+
 class VLANForm(forms.ModelForm):
     class Meta:
         model = VLAN
@@ -95,6 +115,7 @@ class VLANForm(forms.ModelForm):
             'status': forms.Select(attrs={'class': 'form-select'}),
         }
 
+
 class VRFForm(forms.ModelForm):
     class Meta:
         model = VRF
@@ -104,6 +125,7 @@ class VRFForm(forms.ModelForm):
             'rd': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. 65000:1'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
+
 
 class PrefixForm(forms.ModelForm):
     class Meta:

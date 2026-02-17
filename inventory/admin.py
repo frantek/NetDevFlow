@@ -1,14 +1,16 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from django.utils.html import format_html
-from django.contrib import messages
-from .models import Profile, Device, IPAddress, MaintenanceTicket, DataCenter, Row, Rack
+
+from .models import DataCenter, Device, IPAddress, MaintenanceTicket, Profile, Rack, Row
 
 # --- Inlines for DCIM UX (LO1.1 Principles) ---
 
+
 class IPAddressInline(admin.TabularInline):
     """Manage IP allocations directly on the Device detail page."""
+
     model = IPAddress
     extra = 1
     fields = ('address', 'subnet_mask', 'is_primary')
@@ -16,6 +18,7 @@ class IPAddressInline(admin.TabularInline):
 
 class MaintenanceTicketInline(admin.TabularInline):
     """Repair history integrated into the Device view for operational context."""
+
     model = MaintenanceTicket
     extra = 0
     fields = ('title', 'severity', 'status', 'assigned_to')
@@ -25,6 +28,7 @@ class MaintenanceTicketInline(admin.TabularInline):
 
 class DeviceInline(admin.TabularInline):
     """Allows technicians to see/edit hardware currently installed in a specific rack."""
+
     model = Device
     extra = 0
     fields = ('hostname', 'position', 'size', 'status')
@@ -33,11 +37,13 @@ class DeviceInline(admin.TabularInline):
 
 class RackInline(admin.TabularInline):
     """Shows all racks within a specific row."""
+
     model = Rack
     extra = 1
 
 
 # --- DCIM Hierarchy Registrations ---
+
 
 @admin.register(DataCenter)
 class DataCenterAdmin(admin.ModelAdmin):
@@ -46,6 +52,7 @@ class DataCenterAdmin(admin.ModelAdmin):
 
     def rack_count(self, obj):
         return Rack.objects.filter(row__data_center=obj).count()
+
     rack_count.short_description = 'Total Racks'
 
 
@@ -67,6 +74,7 @@ class RackAdmin(admin.ModelAdmin):
 
     def get_location(self, obj):
         return f"{obj.row.data_center.name} / {obj.row.name}"
+
     get_location.short_description = 'Location'
 
     def occupied_units(self, obj):
@@ -80,47 +88,59 @@ class RackAdmin(admin.ModelAdmin):
             '<div style="width:100px; background:#eee; border-radius:3px;">'
             '<div style="width:{}px; background:{}; height:10px; border-radius:3px;"></div>'
             '</div>',
-            percent, color
+            percent,
+            color,
         )
+
     utilization_bar.short_description = 'U-Space Util'
 
 
 # --- Enhanced Asset Management ---
+
 
 @admin.register(Device)
 class DeviceAdmin(admin.ModelAdmin):
     """
     The Big Boss HQ for hardware assets. Now includes DCIM physical tracking.
     """
+
     list_display = ('hostname', 'image_tag', 'device_type', 'status', 'get_rack_pos', 'size', 'updated_at')
     list_filter = ('device_type', 'status', 'rack__row__data_center', 'rack')
     search_fields = ('hostname', 'model_name', 'rack__name', 'ip_addresses__address')
     list_editable = ('status',)
     inlines = [IPAddressInline, MaintenanceTicketInline]
-    
+
     fieldsets = (
-        ('Hardware Identity', {
-            'fields': ('hostname', 'model_name', 'device_type', 'device_image')
-        }),
-        ('Physical Placement (DCIM)', {
-            'fields': ('rack', 'position', 'size'),
-            'description': 'Specify where this unit sits in the physical rack (RU position).'
-        }),
-        ('Deployment Status', {
-            'fields': ('status',),
-        }),
+        ('Hardware Identity', {'fields': ('hostname', 'model_name', 'device_type', 'device_image')}),
+        (
+            'Physical Placement (DCIM)',
+            {
+                'fields': ('rack', 'position', 'size'),
+                'description': 'Specify where this unit sits in the physical rack (RU position).',
+            },
+        ),
+        (
+            'Deployment Status',
+            {
+                'fields': ('status',),
+            },
+        ),
     )
 
     def image_tag(self, obj):
         if obj.device_image:
-            return format_html('<img src="{}" style="width: 45px; height:auto; border-radius:4px;" />', obj.device_image.url)
+            return format_html(
+                '<img src="{}" style="width: 45px; height:auto; border-radius:4px;" />', obj.device_image.url
+            )
         return "-"
+
     image_tag.short_description = 'Preview'
 
     def get_rack_pos(self, obj):
         if obj.rack:
             return f"{obj.rack.name} [RU {obj.position}]"
         return format_html('<span style="color: #999;">Unracked</span>')
+
     get_rack_pos.short_description = 'Rack Position'
 
 
@@ -138,11 +158,15 @@ class MaintenanceTicketAdmin(admin.ModelAdmin):
 
     def colored_severity(self, obj):
         colors = {'CRITICAL': 'red', 'WARNING': 'orange', 'LOW': 'green'}
-        return format_html('<span style="color: {}; font-weight: bold;">{}</span>', 
-                           colors.get(obj.severity, 'black'), obj.get_severity_display())
+        return format_html(
+            '<span style="color: {}; font-weight: bold;">{}</span>',
+            colors.get(obj.severity, 'black'),
+            obj.get_severity_display(),
+        )
 
 
 # --- Profile & User Auth ---
+
 
 class ProfileInline(admin.StackedInline):
     model = Profile
@@ -156,6 +180,7 @@ class UserAdmin(BaseUserAdmin):
 
     def get_role(self, obj):
         return obj.profile.role
+
     get_role.short_description = 'Network Access Role'
 
 
