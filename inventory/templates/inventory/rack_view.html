@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block title %}Rack View: {{ rack.name }} | NetDevFlow{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold mb-0 theme-text-main">{{ rack.name }}</h2>
+                <p class="theme-text-muted">{{ rack.row.data_center.name }} | {{ rack.row.name }}</p>
+            </div>
+            <a href="{% url 'device_create' %}?rack={{ rack.id }}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i> Install Hardware
+            </a>
+        </div>
+
+        <!-- The Physical Rack Visualization -->
+        <div class="rack-container shadow-lg">
+            <div class="rack-frame">
+                {% for slot in slots %}
+                    {% if slot.device %}
+                        {% if slot.is_start %}
+                            <div class="rack-slot occupied" style="height: calc({{ slot.device.size }} * 40px);">
+                                <div class="device-label">
+                                    <span class="ru-tag">{{ slot.ru }}U</span>
+                                    <a href="{% url 'device_detail' slot.device.id %}" class="device-link">
+                                        {{ slot.device.hostname }} 
+                                        <small class="opacity-50 ms-2">({{ slot.device.model_name }})</small>
+                                    </a>
+                                </div>
+                                <div class="device-status-dot {{ slot.device.status|lower }}"></div>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="rack-slot empty" style="height: 40px;">
+                            <span class="ru-tag text-muted">{{ slot.ru }}U</span>
+                            <span class="empty-text">Empty Slot</span>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Rack Stats Sidebar -->
+    <div class="col-md-4">
+        <div class="card mb-4 border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h5 class="fw-bold mb-0">Rack Utilization</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <h1 class="display-4 fw-bold text-primary">{{ rack.ru_capacity }}</h1>
+                    <p class="text-muted">Total Rack Units</p>
+                </div>
+                <div class="d-grid gap-2">
+                    <div class="p-3 bg-light rounded d-flex justify-content-between">
+                        <span class="text-muted">Available Space</span>
+                        <span class="fw-bold text-success">{{ rack.get_available_units }}U</span>
+                    </div>
+                    <div class="p-3 bg-light rounded d-flex justify-content-between">
+                        <span class="text-muted">Status</span>
+                        <span class="badge bg-success">Healthy</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .rack-container {
+        background: #222;
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 600px;
+        margin: 0 auto;
+        border: 8px solid #444;
+    }
+
+    .rack-frame {
+        background: #111;
+        border: 2px solid #333;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .rack-slot {
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid #222;
+        padding: 0 15px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .rack-slot.empty {
+        background: repeating-linear-gradient(45deg, #111, #111 10px, #161616 10px, #161616 20px);
+    }
+
+    .rack-slot.occupied {
+        background: #2c3e50;
+        border-left: 5px solid #0d6efd;
+        color: white;
+    }
+
+    .ru-tag {
+        font-family: monospace;
+        font-weight: bold;
+        font-size: 0.75rem;
+        width: 30px;
+        display: inline-block;
+    }
+
+    .device-link {
+        color: #fff;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .device-link:hover { color: #0d6efd; }
+
+    .device-status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        position: absolute;
+        right: 15px;
+    }
+    .device-status-dot.online { background: #198754; box-shadow: 0 0 10px #198754; }
+    .device-status-dot.maintenance { background: #ffc107; box-shadow: 0 0 10px #ffc107; }
+
+    .empty-text {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #444;
+        margin-left: 10px;
+    }
+
+    [data-theme="dark"] .rack-container { border-color: #000; }
+</style>
+{% endblock %}

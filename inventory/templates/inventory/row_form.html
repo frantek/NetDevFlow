@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if object %}Update{% else %}Create{% endif %} Row | NetDevFlow{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card border-0 shadow-sm activity-card">
+            <div class="card-header bg-transparent py-3 text-center border-bottom">
+                <h4 class="mb-0 fw-bold theme-text-main">
+                    {% if object %}Edit Row {{ object.name }}{% else %}Add New Row{% endif %}
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-uppercase theme-text-muted">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                            <div class="text-danger small mt-1">{{ field.errors.as_text }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg shadow-sm">
+                            {% if object %}Update Row{% else %}Create Row{% endif %}
+                        </button>
+                        <a href="{% url 'row_list' %}" class="btn btn-link theme-text-muted">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -8,7 +8,17 @@ from django.urls import reverse_lazy
 from django.db.models import Count
 from django.http import JsonResponse
 from django.core.exceptions import ObjectDoesNotExist
-from .models import Device, IPAddress, MaintenanceTicket, Profile, Rack, DataCenter
+from .models import Device, IPAddress, MaintenanceTicket, Profile, Rack, DataCenter, Row
+
+# --- Role-Based Access Mixins ---
+
+class ManagerRequiredMixin(UserPassesTestMixin):
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.profile.role == 'MANAGER'
+
+class StaffRequiredMixin(UserPassesTestMixin):
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.profile.role in ['TECHNICIAN', 'MANAGER']
 
 # --- Dashboard View ---
 
@@ -164,6 +174,44 @@ class DeviceDeleteView(LoginRequiredMixin, ManagerRequiredMixin, DeleteView):
         messages.warning(self.request, "Hardware asset decommissioned and removed from inventory.")
         return super().delete(request, *args, **kwargs)
 
+# --- Data Center CRUD ---
+
+class DataCenterListView(LoginRequiredMixin, ListView):
+    model = DataCenter
+    template_name = 'inventory/datacenter_list.html'
+    context_object_name = 'datacenters'
+    
+    def get_queryset(self):
+        return DataCenter.objects.annotate(
+            row_count=Count('rows', distinct=True),
+            rack_count=Count('rows__racks', distinct=True)
+        )
+
+class DataCenterCreateView(LoginRequiredMixin, StaffRequiredMixin, CreateView):
+    model = DataCenter
+    template_name = 'inventory/datacenter_form.html'
+    fields = ['name', 'physical_address', 'contact_info']
+    success_url = reverse_lazy('datacenter_list')
+    
+    def form_valid(self, form):
+        messages.success(self.request, f"Data Center '{form.instance.name}' commissioned.")
+        return super().form_valid(form)
+
+class DataCenterUpdateView(LoginRequiredMixin, StaffRequiredMixin, UpdateView):
+    model = DataCenter
+    template_name = 'inventory/datacenter_form.html'
+    fields = ['name', 'physical_address', 'contact_info']
+    success_url = reverse_lazy('datacenter_list')
+
+class DataCenterDeleteView(LoginRequiredMixin, ManagerRequiredMixin, DeleteView):
+    model = DataCenter
+    template_name = 'inventory/datacenter_confirm_delete.html'
+    success_url = reverse_lazy('datacenter_list')
+    
+    def delete(self, request, *args, **kwargs):
+        messages.warning(self.request, "Data Center decommissioned and removed from hierarchy.")
+        return super().delete(request, *args, **kwargs)
+
 # --- CRUD Views: Racks (DCIM Lifecycle) ---
 
 class RackListView(LoginRequiredMixin, ListView):
@@ -205,12 +253,68 @@ class RackDeleteView(LoginRequiredMixin, ManagerRequiredMixin, DeleteView):
         messages.warning(self.request, "Rack decommissioned. All unlinked devices are now unassigned.")
         return super().delete(request, *args, **kwargs)
 
+# --- CRUD Views: Racks ---
+
+class RackListView(LoginRequiredMixin, ListView):
+    model = Rack
+    template_name = 'inventory/rack_list.html'
+    context_object_name = 'racks'
+    queryset = Rack.objects.select_related('row__data_center').annotate(device_count=Count('devices'))
+
+class RackCreateView(LoginRequiredMixin, TechOrManagerRequiredMixin, CreateView):
+    model = Rack
+    template_name = 'inventory/rack_form.html'
+    fields = ['name', 'row', 'ru_capacity']
+    success_url = reverse_lazy('rack_list')
+
+class RackUpdateView(LoginRequiredMixin, TechOrManagerRequiredMixin, UpdateView):
+    model = Rack
+    template_name = 'inventory/rack_form.html'
+    fields = ['name', 'row', 'ru_capacity']
+    success_url = reverse_lazy('rack_list')
+
+class RackDeleteView(LoginRequiredMixin, ManagerRequiredMixin, DeleteView):
+    model = Rack
+    template_name = 'inventory/rack_confirm_delete.html'
+    success_url = reverse_lazy('rack_list')
+
+# --- CRUD Views: Rows (NEW - Hierarchy Management) ---
+
+class RowListView(LoginRequiredMixin, ListView):
+    """Overview of Data Center Rows."""
+    model = Row
+    template_name = 'inventory/row_list.html'
+    context_object_name = 'rows'
+    queryset = Row.objects.select_related('data_center').annotate(rack_count=Count('racks'))
+
+class RowCreateView(LoginRequiredMixin, TechOrManagerRequiredMixin, CreateView):
+    model = Row
+    template_name = 'inventory/row_form.html'
+    fields = ['name', 'data_center']
+    success_url = reverse_lazy('row_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, f"Row {form.instance.name} added to the data center.")
+        return super().form_valid(form)
+
+class RowUpdateView(LoginRequiredMixin, TechOrManagerRequiredMixin, UpdateView):
+    model = Row
+    template_name = 'inventory/row_form.html'
+    fields = ['name', 'data_center']
+    success_url = reverse_lazy('row_list')
+
+class RowDeleteView(LoginRequiredMixin, ManagerRequiredMixin, DeleteView):
+    model = Row
+    template_name = 'inventory/row_confirm_delete.html'
+    success_url = reverse_lazy('row_list')
+
 # --- Ticket CRUD (LO2) ---
 
 class TicketCreateView(LoginRequiredMixin, TechOrManagerRequiredMixin, CreateView):
     model = MaintenanceTicket
     fields = ['title', 'description', 'severity', 'device', 'assigned_to']
     success_url = reverse_lazy('kanban_board')
+    template_name = 'inventory/ticket_form.html'
 
     def form_valid(self, form):
         form.instance.created_by = self.request.user

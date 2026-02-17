@@ -13,6 +13,25 @@ urlpatterns = [
     path('devices/<int:pk>/delete/', views.DeviceDeleteView.as_view(), name='device_confirm_delete'),
     path('devices/<int:pk>/edit/', views.DeviceUpdateView.as_view(), name='device_update'),
 
+    # --- Rack Management (DCIM Hierarchy) ---
+     # Data Center (DCIM Root)
+    path('datacenters/', views.DataCenterListView.as_view(), name='datacenter_list'),
+    path('datacenters/add/', views.DataCenterCreateView.as_view(), name='datacenter_create'),
+    path('datacenters/<int:pk>/edit/', views.DataCenterUpdateView.as_view(), name='datacenter_update'),
+    path('datacenters/<int:pk>/delete/', views.DataCenterDeleteView.as_view(), name='datacenter_delete'),
+    
+    path('racks/', views.RackListView.as_view(), name='rack_list'),
+    path('racks/<int:rack_id>/view/', views.rack_view, name='rack_view'),
+    path('racks/add/', views.RackCreateView.as_view(), name='rack_create'),
+    path('racks/<int:pk>/edit/', views.RackUpdateView.as_view(), name='rack_update'),
+    path('racks/<int:pk>/delete/', views.RackDeleteView.as_view(), name='rack_confirm_delete'),
+
+    # Row Management
+    path('rows/', views.RowListView.as_view(), name='row_list'),
+    path('rows/add/', views.RowCreateView.as_view(), name='row_create'),
+    path('rows/<int:pk>/edit/', views.RowUpdateView.as_view(), name='row_update'),
+    path('rows/<int:pk>/delete/', views.RowDeleteView.as_view(), name='row_confirm_delete'),
+
     # Ticket Routes
     path('tickets/add/', views.TicketCreateView.as_view(), name='ticket_create'),
     path('tickets/<int:pk>/update/', views.TicketUpdateView.as_view(), name='ticket_update'),

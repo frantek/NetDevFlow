@@ -5,10 +5,10 @@
 {% block content %}
 <!-- Enhanced Breadcrumb Navigation (LO1.1) -->
 <nav aria-label="breadcrumb" class="mb-4">
-    <ol class="breadcrumb bg-white p-3 rounded shadow-sm">
-        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}" class="text-decoration-none">Dashboard</a></li>
-        <li class="breadcrumb-item"><a href="{% url 'device_list' %}" class="text-decoration-none">Inventory</a></li>
-        <li class="breadcrumb-item active" aria-current="page">{{ device.hostname }}</li>
+    <ol class="breadcrumb bg-transparent p-0 mb-0">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}" class="text-decoration-none theme-text-muted">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'device_list' %}" class="text-decoration-none theme-text-muted">Inventory</a></li>
+        <li class="breadcrumb-item active theme-text-main" aria-current="page">{{ device.hostname }}</li>
     </ol>
 </nav>
 
@@ -16,10 +16,10 @@
     <!-- Specifications & Detail Section -->
     <div class="col-lg-7">
         <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+            <div class="card-header bg-transparent py-3 d-flex justify-content-between align-items-center border-bottom">
                 <div>
-                    <h5 class="mb-0 fw-bold text-dark">Hardware Specifications</h5>
-                    <small class="text-muted">System ID: #{{ device.id|stringformat:"05d" }}</small>
+                    <h5 class="mb-0 fw-bold theme-text-main">Hardware Specifications</h5>
+                    <small class="theme-text-muted">System ID: #{{ device.id|stringformat:"05d" }}</small>
                 </div>
                 <div class="text-end">
                     <span class="badge rounded-pill p-2 px-3 {% if device.status == 'ONLINE' %}bg-success-subtle text-success border border-success{% elif device.status == 'MAINTENANCE' %}bg-warning-subtle text-warning border border-warning{% else %}bg-secondary-subtle text-secondary border border-secondary{% endif %}">
@@ -28,41 +28,65 @@
                 </div>
             </div>
             <div class="card-body">
+                <!-- Device Image / Placeholder -->
+                <div class="mb-4 text-center">
+                    {% if device.device_image %}
+                        <img src="{{ device.device_image.url }}" class="img-fluid rounded shadow-sm border" style="max-height: 250px;" alt="{{ device.hostname }}">
+                    {% else %}
+                        <div class="p-5 bg-body-tertiary rounded border border-dashed text-center">
+                            <i class="fas fa-server fa-4x opacity-10 mb-2"></i>
+                            <p class="small theme-text-muted mb-0">No hardware photo available</p>
+                        </div>
+                    {% endif %}
+                </div>
+
                 <div class="row mb-4">
                     <div class="col-sm-6">
-                        <label class="text-uppercase small fw-bold text-muted d-block mb-1">Hostname / FQDN</label>
+                        <label class="text-uppercase small fw-bold theme-text-muted d-block mb-1">Hostname / FQDN</label>
                         <span class="h5 fw-bold text-primary">{{ device.hostname }}</span>
                     </div>
                     <div class="col-sm-6">
-                        <label class="text-uppercase small fw-bold text-muted d-block mb-1">Hardware Model</label>
-                        <span class="h5">{{ device.model_name }}</span>
+                        <label class="text-uppercase small fw-bold theme-text-muted d-block mb-1">Hardware Model</label>
+                        <span class="h5 theme-text-main">{{ device.model_name }}</span>
                     </div>
                 </div>
 
-                <hr class="text-light">
+                <hr class="opacity-10">
 
+                <!-- DCIM Physical Placement -->
                 <div class="row g-3">
                     <div class="col-sm-4">
-                        <div class="p-2 border rounded bg-light">
-                            <label class="small text-muted d-block">Asset Category</label>
-                            <span class="fw-semibold"><i class="fas fa-microchip me-2"></i>{{ device.get_device_type_display }}</span>
+                        <div class="p-3 border rounded bg-body-tertiary h-100">
+                            <label class="small theme-text-muted d-block mb-1">Asset Category</label>
+                            <span class="fw-semibold theme-text-main"><i class="fas fa-microchip me-2 text-primary"></i>{{ device.get_device_type_display }}</span>
                         </div>
                     </div>
                     <div class="col-sm-8">
-                        <div class="p-2 border rounded bg-light">
-                            <label class="small text-muted d-block">Data Center Location</label>
-                            <span class="fw-semibold"><i class="fas fa-map-marker-alt me-2 text-danger"></i>{{ device.location }}</span>
+                        <div class="p-3 border rounded bg-body-tertiary h-100">
+                            <label class="small theme-text-muted d-block mb-1">Physical Location</label>
+                            {% if device.rack %}
+                                <div class="theme-text-main fw-semibold">
+                                    <i class="fas fa-map-marker-alt me-2 text-danger"></i>
+                                    {{ device.rack.row.data_center.name }} / {{ device.rack.row.name }} / {{ device.rack.name }}
+                                </div>
+                                <div class="mt-2">
+                                    <span class="badge bg-dark">Position: RU {{ device.position }}</span>
+                                    <span class="badge bg-secondary">Size: {{ device.size }}U</span>
+                                </div>
+                            {% else %}
+                                <span class="theme-text-muted italic"><i class="fas fa-info-circle me-2"></i>Not currently racked</span>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
 
-                <div class="mt-4 pt-3 border-top">
+                <div class="mt-4 pt-3 border-top border-light-subtle">
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="small">
-                            <span class="text-muted">Provisioned:</span>
-                            <span class="ms-1">{{ device.created_at|date:"Y-m-d" }}</span>
+                            <span class="theme-text-muted">Provisioned:</span>
+                            <span class="ms-1 theme-text-main fw-bold">{{ device.created_at|date:"Y-m-d" }}</span>
                         </div>
-                        <div class="small text-muted">
+                        <div class="small theme-text-muted">
                             Last Audit: {{ device.updated_at|date:"Y-m-d H:i" }}
                         </div>
                     </div>
@@ -72,33 +96,33 @@
 
         <!-- Maintenance History (LO7 Relationship) -->
         <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
-                <h5 class="mb-0 fw-bold">Incident & Maintenance Logs</h5>
-                <span class="badge bg-light text-dark border">{{ device.tickets.all.count }} Records</span>
+            <div class="card-header bg-transparent py-3 d-flex justify-content-between align-items-center border-bottom">
+                <h5 class="mb-0 fw-bold theme-text-main">Incident & Maintenance Logs</h5>
+                <span class="badge bg-body-tertiary theme-text-main border">{{ device.tickets.all.count }} Records</span>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="ps-3">Date</th>
-                                <th>Incident Details</th>
-                                <th>Priority</th>
-                                <th>Status</th>
+                        <thead>
+                            <tr class="bg-body-tertiary">
+                                <th class="ps-3 border-0">Date</th>
+                                <th class="border-0">Incident Details</th>
+                                <th class="border-0">Priority</th>
+                                <th class="border-0">Status</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for ticket in device.tickets.all %}
-                            <tr>
+                            <tr class="theme-table-row">
                                 <td class="ps-3">
-                                    <span class="d-block small fw-bold">{{ ticket.created_at|date:"M d" }}</span>
-                                    <span class="text-muted small">{{ ticket.created_at|date:"Y" }}</span>
+                                    <span class="d-block small fw-bold theme-text-main">{{ ticket.created_at|date:"M d" }}</span>
+                                    <span class="theme-text-muted small">{{ ticket.created_at|date:"Y" }}</span>
                                 </td>
                                 <td>
                                     <a href="{% url 'ticket_update' ticket.id %}" class="text-decoration-none fw-semibold">
                                         {{ ticket.title }}
                                     </a>
-                                    <p class="mb-0 small text-truncate text-muted" style="max-width: 200px;">
+                                    <p class="mb-0 small text-truncate theme-text-muted" style="max-width: 200px;">
                                         {{ ticket.description }}
                                     </p>
                                 </td>
@@ -120,7 +144,7 @@
                             {% empty %}
                             <tr>
                                 <td colspan="4" class="text-center py-5">
-                                    <div class="text-muted">
+                                    <div class="theme-text-muted">
                                         <i class="fas fa-clipboard-check fa-3x mb-3 opacity-25"></i>
                                         <p>No maintenance tickets recorded for this asset.</p>
                                     </div>
@@ -137,13 +161,13 @@
     <!-- IP Allocations Sidebar -->
     <div class="col-lg-5">
         <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header bg-white py-3 border-bottom">
-                <h5 class="mb-0 fw-bold">IPAM: Network Allocation</h5>
+            <div class="card-header bg-transparent py-3 border-bottom">
+                <h5 class="mb-0 fw-bold theme-text-main">IPAM: Network Allocation</h5>
             </div>
             <div class="card-body p-0">
                 <ul class="list-group list-group-flush">
                     {% for ip in device.ip_addresses.all %}
-                    <li class="list-group-item py-3">
+                    <li class="list-group-item bg-transparent py-3 border-bottom">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <div class="d-flex align-items-center mb-1">
@@ -152,24 +176,24 @@
                                         <span class="badge bg-primary-subtle text-primary border border-primary" style="font-size: 0.6rem;">PRIMARY</span>
                                     {% endif %}
                                 </div>
-                                <div class="small text-muted">
+                                <div class="small theme-text-muted">
                                     Mask: {{ ip.subnet_mask }}
                                 </div>
                             </div>
-                            <i class="fas fa-network-wired text-muted opacity-50"></i>
+                            <i class="fas fa-network-wired theme-text-muted opacity-50"></i>
                         </div>
                     </li>
                     {% empty %}
-                    <li class="list-group-item text-center py-4 text-muted small">
+                    <li class="list-group-item bg-transparent text-center py-4 theme-text-muted small">
                         No IP addresses allocated to this interface.
                     </li>
                     {% endfor %}
                 </ul>
             </div>
             {% if user.profile.role != 'READONLY' %}
-            <div class="card-footer bg-light border-0 py-3">
-                <a href="{% url 'admin:inventory_ipaddress_add' %}" class="btn btn-white border shadow-sm btn-sm w-100 fw-bold">
-                    <i class="fas fa-plus-circle me-1 text-primary"></i> Allocate New IP Interface
+            <div class="card-footer bg-body-tertiary border-0 py-3 text-center">
+                <a href="{% url 'admin:inventory_ipaddress_add' %}" class="btn btn-outline-primary btn-sm px-4">
+                    <i class="fas fa-plus-circle me-1"></i> Allocate New IP
                 </a>
             </div>
             {% endif %}
@@ -184,6 +208,11 @@
             <div class="card-body">
                 <p class="small text-white-50 mb-4">Manage lifecycle status or log technical incidents for this hardware asset.</p>
                 <div class="d-grid gap-3">
+                    <!-- Added Edit Device Button -->
+                    <a href="{% url 'device_update' device.id %}" class="btn btn-outline-light fw-bold">
+                        <i class="fas fa-edit me-2"></i> Edit Device Info
+                    </a>
+
                     <a href="{% url 'ticket_create' %}?device={{ device.id }}" class="btn btn-warning fw-bold text-dark">
                         <i class="fas fa-tools me-2"></i> Log Repair Ticket
                     </a>
@@ -191,7 +220,7 @@
                     {% if user.profile.role == 'MANAGER' %}
                         <div class="mt-2 pt-3 border-top border-secondary">
                             <label class="d-block small text-danger fw-bold text-uppercase mb-2" style="font-size: 0.65rem;">Danger Zone</label>
-                            <a href="{% url 'device_delete' device.id %}" class="btn btn-danger w-100">
+                            <a href="{% url 'device_confirm_delete' device.id %}" class="btn btn-danger w-100">
                                 <i class="fas fa-trash-alt me-2"></i> Decommission Hardware
                             </a>
                         </div>
@@ -202,15 +231,17 @@
         {% endif %}
 
         <!-- Compliance & Audit Information -->
-        <div class="mt-4 p-3 rounded border bg-white shadow-sm small">
-            <h6 class="fw-bold mb-2">Audit Compliance</h6>
-            <p class="text-muted mb-0">This hardware asset is subject to standard infrastructure auditing. Last physical status verification: <strong>{{ device.updated_at|date:"Y-m-d" }}</strong>.</p>
+        <div class="mt-4 p-3 rounded border bg-body-tertiary shadow-sm small">
+            <h6 class="fw-bold mb-2 theme-text-main">Audit Compliance</h6>
+            <p class="theme-text-muted mb-0">This hardware asset is subject to standard infrastructure auditing. Last physical status verification: <strong>{{ device.updated_at|date:"Y-m-d" }}</strong>.</p>
         </div>
     </div>
 </div>
 
 <style>
-    .btn-white { background: white; color: #333; }
-    .btn-white:hover { background: #f8f9fa; }
+    .theme-text-main { color: var(--text-main) !important; }
+    .theme-text-muted { color: var(--text-muted) !important; }
+    .theme-table-row:hover { background-color: var(--table-hover) !important; }
+    .border-dashed { border-style: dashed !important; }
 </style>
 {% endblock %}

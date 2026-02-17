@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}DC Row Management | NetDevFlow{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-0 theme-text-main">Data Center Rows</h2>
+        <p class="theme-text-muted">Manage the physical rows within your Data Center sites.</p>
+    </div>
+    {% if user.profile.role != 'READONLY' %}
+        <a href="{% url 'row_create' %}" class="btn btn-primary shadow-sm">
+            <i class="fas fa-plus me-1"></i> Add Row
+        </a>
+    {% endif %}
+</div>
+
+<div class="card activity-card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4">Row Name</th>
+                        <th>Data Center Site</th>
+                        <th>Rack Count</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in rows %}
+                    <tr class="theme-table-row">
+                        <td class="ps-4 fw-bold theme-text-main">
+                            <i class="fas fa-align-justify me-2 text-primary opacity-50"></i>Row {{ row.name }}
+                        </td>
+                        <td class="theme-text-main">{{ row.data_center.name }}</td>
+                        <td>
+                            <span class="badge bg-body-tertiary theme-text-main border">{{ row.rack_count }} Racks</span>
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="btn-group">
+                                {% if user.profile.role != 'READONLY' %}
+                                    <a href="{% url 'row_update' row.id %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></a>
+                                {% endif %}
+                                {% if user.profile.role == 'MANAGER' %}
+                                    <a href="{% url 'row_confirm_delete' row.id %}" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash-alt"></i></a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-5 theme-text-muted">
+                            <i class="fas fa-layer-group fa-3x mb-3 opacity-25 d-block mx-auto"></i>
+                            No rows defined. Start by adding a row to a Data Center site.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
