@@ -1,9 +1,17 @@
-from django.contrib import admin, messages
+from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from django.utils.html import format_html
 
-from .models import DataCenter, Device, IPAddress, MaintenanceTicket, Profile, Rack, Row
+from .models import (
+    DataCenter,
+    Device,
+    IPAddress,
+    MaintenanceTicket,
+    Profile,
+    Rack,
+    Row,
+)
 
 # --- Inlines for DCIM UX (LO1.1 Principles) ---
 
@@ -17,7 +25,10 @@ class IPAddressInline(admin.TabularInline):
 
 
 class MaintenanceTicketInline(admin.TabularInline):
-    """Repair history integrated into the Device view for operational context."""
+    """Repair history integrated into the Device view.
+
+    Provides operational context for technicians.
+    """
 
     model = MaintenanceTicket
     extra = 0
@@ -27,7 +38,7 @@ class MaintenanceTicketInline(admin.TabularInline):
 
 
 class DeviceInline(admin.TabularInline):
-    """Allows technicians to see/edit hardware currently installed in a specific rack."""
+    """Allows technicians to see/edit hardware in a specific rack."""
 
     model = Device
     extra = 0
@@ -68,7 +79,13 @@ class RowAdmin(admin.ModelAdmin):
 
 @admin.register(Rack)
 class RackAdmin(admin.ModelAdmin):
-    list_display = ('name', 'get_location', 'ru_capacity', 'occupied_units', 'utilization_bar')
+    list_display = (
+        'name',
+        'get_location',
+        'ru_capacity',
+        'occupied_units',
+        'utilization_bar',
+    )
     list_filter = ('row__data_center', 'row')
     inlines = [DeviceInline]
 
@@ -82,12 +99,18 @@ class RackAdmin(admin.ModelAdmin):
 
     def utilization_bar(self, obj):
         occupied = self.occupied_units(obj)
-        percent = (occupied / obj.ru_capacity) * 100 if obj.ru_capacity > 0 else 0
-        color = 'green' if percent < 70 else 'orange' if percent < 90 else 'red'
-        return format_html(
+        percent = (
+            (occupied / obj.ru_capacity) * 100 if obj.ru_capacity > 0 else 0
+        )
+        color = 'green' if percent < 70 else 'orange' if percent < 90 else 'red'  # noqa: E501
+        # noqa: E501
+        html_start = (
             '<div style="width:100px; background:#eee; border-radius:3px;">'
-            '<div style="width:{}px; background:{}; height:10px; border-radius:3px;"></div>'
-            '</div>',
+        )
+        return format_html(
+            html_start +
+            '<div style="width:{}px; background:{}; height:10px; '
+            'border-radius:3px;"></div></div>',
             percent,
             color,
         )
@@ -104,19 +127,42 @@ class DeviceAdmin(admin.ModelAdmin):
     The Big Boss HQ for hardware assets. Now includes DCIM physical tracking.
     """
 
-    list_display = ('hostname', 'image_tag', 'device_type', 'status', 'get_rack_pos', 'size', 'updated_at')
+    list_display = (
+        'hostname',
+        'image_tag',
+        'device_type',
+        'status',
+        'get_rack_pos',
+        'size',
+        'updated_at',
+    )
     list_filter = ('device_type', 'status', 'rack__row__data_center', 'rack')
-    search_fields = ('hostname', 'model_name', 'rack__name', 'ip_addresses__address')
+    search_fields = (
+        'hostname',
+        'model_name',
+        'rack__name',
+        'ip_addresses__address',
+    )
     list_editable = ('status',)
     inlines = [IPAddressInline, MaintenanceTicketInline]
 
     fieldsets = (
-        ('Hardware Identity', {'fields': ('hostname', 'model_name', 'device_type', 'device_image')}),
+        (
+            'Hardware Identity',
+            {
+                'fields': (
+                    'hostname',
+                    'model_name',
+                    'device_type',
+                    'device_image',
+                )
+            },
+        ),
         (
             'Physical Placement (DCIM)',
             {
                 'fields': ('rack', 'position', 'size'),
-                'description': 'Specify where this unit sits in the physical rack (RU position).',
+                'description': 'Specify where this unit sits in the physical rack.',  # noqa: E501
             },
         ),
         (
@@ -129,8 +175,13 @@ class DeviceAdmin(admin.ModelAdmin):
 
     def image_tag(self, obj):
         if obj.device_image:
+            img_html = (
+                '<img src="{}" style="width: 45px; height:auto; '
+                'border-radius:4px;" />'
+            )
             return format_html(
-                '<img src="{}" style="width: 45px; height:auto; border-radius:4px;" />', obj.device_image.url
+                img_html,
+                obj.device_image.url,
             )
         return "-"
 
@@ -152,7 +203,15 @@ class IPAddressAdmin(admin.ModelAdmin):
 
 @admin.register(MaintenanceTicket)
 class MaintenanceTicketAdmin(admin.ModelAdmin):
-    list_display = ('id', 'colored_severity', 'title', 'device', 'status', 'assigned_to', 'created_at')
+    list_display = (
+        'id',
+        'colored_severity',
+        'title',
+        'device',
+        'status',
+        'assigned_to',
+        'created_at',
+    )
     list_filter = ('severity', 'status', 'created_at')
     raw_id_fields = ('device',)
 
