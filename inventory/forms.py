@@ -3,18 +3,35 @@ from .models import Device, IPAddress, MaintenanceTicket
 
 class DeviceForm(forms.ModelForm):
     """
-    Form for creating and updating network devices.
-    Includes Bootstrap styling for all fields.
+    Advanced DCIM form featuring physical placement and dimension tracking.
     """
     class Meta:
         model = Device
-        fields = ['hostname', 'model_name', 'device_type', 'status', 'location']
+        fields = ['hostname', 'model_name', 'device_type', 'status', 'rack', 'position', 'size', 'device_image']
         widgets = {
-            'hostname': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. core-switch-01'}),
-            'model_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Cisco Nexus 9000'}),
+            'hostname': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'FQDN/Hostname'}),
+            'model_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Cisco C240 M5'}),
             'device_type': forms.Select(attrs={'class': 'form-select'}),
             'status': forms.Select(attrs={'class': 'form-select'}),
-            'location': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Data Center A, Rack 4'}),
+            'rack': forms.Select(attrs={'class': 'form-select'}),
+            'position': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+            'size': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 42}),
+            'device_image': forms.FileInput(attrs={'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Order racks by full DC path
+        self.fields['rack'].queryset = Rack.objects.select_related('row__data_center').order_by('row__data_center__name', 'row__name', 'name')
+
+class RackForm(forms.ModelForm):
+    class Meta:
+        model = Rack
+        fields = ['name', 'row', 'ru_capacity']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'row': forms.Select(attrs={'class': 'form-select'}),
+            'ru_capacity': forms.NumberInput(attrs={'class': 'form-control'}),
         }
 
 class TicketForm(forms.ModelForm):

@@ -10,7 +10,8 @@ urlpatterns = [
     path('devices/', views.DeviceListView.as_view(), name='device_list'),
     path('devices/<int:pk>/', views.DeviceDetailView.as_view(), name='device_detail'),
     path('devices/add/', views.DeviceCreateView.as_view(), name='device_create'),
-    path('devices/<int:pk>/delete/', views.DeviceDeleteView.as_view(), name='device_delete'),
+    path('devices/<int:pk>/delete/', views.DeviceDeleteView.as_view(), name='device_confirm_delete'),
+    path('devices/<int:pk>/edit/', views.DeviceUpdateView.as_view(), name='device_update'),
 
     # Ticket Routes
     path('tickets/add/', views.TicketCreateView.as_view(), name='ticket_create'),

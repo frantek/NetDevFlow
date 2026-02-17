@@ -8,7 +8,7 @@ from django.urls import reverse_lazy
 from django.db.models import Count
 from django.http import JsonResponse
 from django.core.exceptions import ObjectDoesNotExist
-from .models import Device, IPAddress, MaintenanceTicket, Profile
+from .models import Device, IPAddress, MaintenanceTicket, Profile, Rack, DataCenter
 
 # --- Dashboard View ---
 
@@ -22,8 +22,36 @@ def dashboard(request):
         'critical_tickets': MaintenanceTicket.objects.filter(severity='CRITICAL', status='OPEN').count(),
         'recent_tickets': MaintenanceTicket.objects.all()[:5],
         'device_types': Device.objects.values('device_type').annotate(count=Count('device_type')),
+        'dc_stats': DataCenter.objects.annotate(rack_count=Count('rows__racks')),
     }
     return render(request, 'inventory/dashboard.html', context)
+
+@login_required
+def rack_view(request, rack_id):
+    """
+    Renders a visual representation of a Rack and its RU slots.
+    """
+    rack = get_object_or_404(Rack, pk=rack_id)
+    devices = rack.devices.all().order_by('-position')
+    
+    # Build a list representing each slot (Top to Bottom)
+    rack_slots = []
+    occupied_positions = {}
+    for device in devices:
+        for ru in range(device.position, device.position + device.size):
+            occupied_positions[ru] = device
+
+    for ru in range(rack.ru_capacity, 0, -1):
+        device = occupied_positions.get(ru)
+        # Handle multi-U units to avoid duplicate visual rows
+        if device and ru == (device.position + device.size - 1):
+            rack_slots.append({'ru': ru, 'device': device, 'is_start': True})
+        elif device:
+            rack_slots.append({'ru': ru, 'device': device, 'is_start': False})
+        else:
+            rack_slots.append({'ru': ru, 'device': None, 'is_start': True})
+
+    return render(request, 'inventory/rack_view.html', {'rack': rack, 'slots': rack_slots})
 
 # --- Kanban Board Views (LO2.2 & Trello-style logic) ---
 
@@ -105,20 +133,76 @@ class DeviceDetailView(LoginRequiredMixin, DetailView):
 
 class DeviceCreateView(LoginRequiredMixin, TechOrManagerRequiredMixin, CreateView):
     model = Device
-    fields = ['hostname', 'model_name', 'device_type', 'status', 'location']
+    template_name = 'inventory/device_form.html'
+    fields = ['hostname', 'model_name', 'device_type', 'status', 'rack', 'position', 'size', 'device_image']
     success_url = reverse_lazy('device_list')
 
     def form_valid(self, form):
-        messages.success(self.request, f"Device {form.instance.hostname} successfully added.")
+        messages.success(self.request, f"Asset {form.instance.hostname} integrated into DCIM.")
+        return super().form_valid(form)
+
+class DeviceUpdateView(LoginRequiredMixin, TechOrManagerRequiredMixin, UpdateView):
+    """Allows updating physical placement or hardware specs (LO2)."""
+    model = Device
+    template_name = 'inventory/device_form.html'
+    fields = ['hostname', 'model_name', 'device_type', 'status', 'rack', 'position', 'size', 'device_image']
+    
+    def get_success_url(self):
+        return reverse_lazy('device_detail', kwargs={'pk': self.object.pk})
+
+    def form_valid(self, form):
+        messages.info(self.request, f"Configuration for {form.instance.hostname} updated.")
         return super().form_valid(form)
 
 class DeviceDeleteView(LoginRequiredMixin, ManagerRequiredMixin, DeleteView):
+    """Restricted to Managers to prevent accidental data loss (LO3)."""
     model = Device
+    template_name = 'inventory/device_confirm_delete.html'
     success_url = reverse_lazy('device_list')
 
     def delete(self, request, *args, **kwargs):
-        device = self.get_object()
-        messages.warning(request, f"Device {device.hostname} decommissioned.")
+        messages.warning(self.request, "Hardware asset decommissioned and removed from inventory.")
+        return super().delete(request, *args, **kwargs)
+
+# --- CRUD Views: Racks (DCIM Lifecycle) ---
+
+class RackListView(LoginRequiredMixin, ListView):
+    """Overview of all physical racks in the infrastructure."""
+    model = Rack
+    template_name = 'inventory/rack_list.html'
+    context_object_name = 'racks'
+    queryset = Rack.objects.select_related('row__data_center').annotate(device_count=Count('devices'))
+
+class RackCreateView(LoginRequiredMixin, TechOrManagerRequiredMixin, CreateView):
+    """Provision a new rack within a Data Center Row."""
+    model = Rack
+    template_name = 'inventory/rack_form.html'
+    fields = ['name', 'row', 'ru_capacity']
+    success_url = reverse_lazy('rack_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, f"Rack {form.instance.name} provisioned successfully.")
+        return super().form_valid(form)
+
+class RackUpdateView(LoginRequiredMixin, TechOrManagerRequiredMixin, UpdateView):
+    """Update rack specifications or physical row assignment."""
+    model = Rack
+    template_name = 'inventory/rack_form.html'
+    fields = ['name', 'row', 'ru_capacity']
+    success_url = reverse_lazy('rack_list')
+
+    def form_valid(self, form):
+        messages.info(self.request, f"Rack {form.instance.name} configuration updated.")
+        return super().form_valid(form)
+
+class RackDeleteView(LoginRequiredMixin, ManagerRequiredMixin, DeleteView):
+    """Decommission a rack. Restricted to Managers."""
+    model = Rack
+    template_name = 'inventory/rack_confirm_delete.html'
+    success_url = reverse_lazy('rack_list')
+
+    def delete(self, request, *args, **kwargs):
+        messages.warning(self.request, "Rack decommissioned. All unlinked devices are now unassigned.")
         return super().delete(request, *args, **kwargs)
 
 # --- Ticket CRUD (LO2) ---
