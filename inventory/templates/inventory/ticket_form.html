@@ -68,6 +68,7 @@
                                         {% endif %}
                                     </div>
                                 </div>
+                                <!-- Content wrapper with js-markdown-content to ensure JS parsing -->
                                 <div class="card-body p-4 theme-text-main markdown-body js-markdown-content">
                                     {{ item.content }}
                                 </div>
@@ -189,12 +190,10 @@
     </form>
 </div>
 
+<!-- Marked.js for real-time and post-load Markdown parsing -->
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <style>
     .active-tab-indicator.active { border-bottom: 2px solid var(--accent-primary) !important; color: var(--accent-primary) !important; }
-    .markdown-body { line-height: 1.6; word-wrap: break-word; }
-    .markdown-body h1, .markdown-body h2 { border-bottom: 1px solid var(--border-color); padding-bottom: 0.3em; margin-top: 1rem; margin-bottom: 0.5rem; }
-    .markdown-body img { max-width: 100%; border-radius: 8px; border: 1px solid var(--border-color); margin: 10px 0; }
     .border-theme { border-color: var(--border-color) !important; }
     .tiny { font-size: 0.7rem; }
     
@@ -216,22 +215,27 @@
         const previewDiv = document.getElementById('markdown-preview');
         const previewTab = document.getElementById('preview-tab');
 
-        // Configure marked
-        marked.setOptions({ gfm: true, breaks: true });
+        // Configure marked options for GFM support
+        if (typeof marked !== 'undefined') {
+            marked.setOptions({ gfm: true, breaks: true });
 
-        // Render existing thread items
-        document.querySelectorAll('.js-markdown-content').forEach(el => {
-            if (el.innerText.trim()) {
-                el.innerHTML = marked.parse(el.innerText);
-            }
-        });
+            // Render existing thread items (including the root description / Original Post)
+            document.querySelectorAll('.js-markdown-content').forEach(el => {
+                // We use textContent to get the raw unparsed Markdown from the server-side render
+                const rawMarkdown = el.textContent.trim();
+                if (rawMarkdown) {
+                    el.innerHTML = marked.parse(rawMarkdown);
+                }
+            });
 
-        // Handle Preview Tab
-        previewTab.addEventListener('click', () => {
-            const rawValue = textarea.value;
-            previewDiv.innerHTML = rawValue.trim() === '' ? '<span class="theme-text-muted italic">Nothing to preview</span>' : marked.parse(rawValue);
-        });
+            // Handle Preview Tab functionality
+            previewTab.addEventListener('click', () => {
+                const rawValue = textarea.value;
+                previewDiv.innerHTML = rawValue.trim() === '' ? '<span class="theme-text-muted italic">Nothing to preview</span>' : marked.parse(rawValue);
+            });
+        }
 
+        // Toolbar helpers
         window.insertAtCursor = (startTag, endTag) => {
             const start = textarea.selectionStart;
             const end = textarea.selectionEnd;
@@ -246,6 +250,7 @@
             if (url) insertAtCursor(`![Image description](${url})`, "");
         };
 
+        // Clipboard Image Paste Handling
         textarea.addEventListener('paste', function(e) {
             const items = (e.clipboardData || e.originalEvent.clipboardData).items;
             for (let index in items) {
