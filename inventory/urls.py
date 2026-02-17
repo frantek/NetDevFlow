@@ -13,13 +13,19 @@ urlpatterns = [
     path('devices/<int:pk>/delete/', views.DeviceDeleteView.as_view(), name='device_confirm_delete'),
     path('devices/<int:pk>/edit/', views.DeviceUpdateView.as_view(), name='device_update'),
 
+    # IPAM (IP Address Management)
+    path('ips/', views.IPAddressListView.as_view(), name='ip_list'),
+    path('ips/add/', views.IPAddressCreateView.as_view(), name='ip_create'),
+    path('ips/<int:pk>/edit/', views.IPAddressUpdateView.as_view(), name='ip_update'),
+    path('ips/<int:pk>/delete/', views.IPAddressDeleteView.as_view(), name='ip_delete'),
+
     # --- Rack Management (DCIM Hierarchy) ---
      # Data Center (DCIM Root)
     path('datacenters/', views.DataCenterListView.as_view(), name='datacenter_list'),
     path('datacenters/add/', views.DataCenterCreateView.as_view(), name='datacenter_create'),
     path('datacenters/<int:pk>/edit/', views.DataCenterUpdateView.as_view(), name='datacenter_update'),
     path('datacenters/<int:pk>/delete/', views.DataCenterDeleteView.as_view(), name='datacenter_delete'),
-    
+
     path('racks/', views.RackListView.as_view(), name='rack_list'),
     path('racks/<int:rack_id>/view/', views.rack_view, name='rack_view'),
     path('racks/add/', views.RackCreateView.as_view(), name='rack_create'),

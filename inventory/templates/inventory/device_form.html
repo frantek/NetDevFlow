@@ -39,6 +39,16 @@
                         <a href="{% url 'device_list' %}" class="btn btn-link theme-text-muted">Bail / Cancel</a>
                     </div>
                 </form>
+
+                <!-- NEW: Contextual IPAM Helper -->
+                {% if object %}
+                <div class="mt-4 pt-3 border-top border-dashed">
+                    <label class="small fw-bold theme-text-muted text-uppercase d-block mb-2">Network Configuration</label>
+                    <a href="{% url 'ip_create' %}?device={{ object.id }}" class="btn btn-sm btn-outline-info w-100">
+                        <i class="fas fa-plus-circle me-1"></i> Assign New IP to this Device
+                    </a>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -57,5 +67,6 @@
         border-color: var(--border-color) !important;
         color: var(--text-main) !important;
     }
+    .border-dashed { border-top: 1px dashed var(--border-color) !important; }
 </style>
 {% endblock %}

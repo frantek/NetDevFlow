@@ -9,6 +9,7 @@ from django.db.models import Count
 from django.http import JsonResponse
 from django.core.exceptions import ObjectDoesNotExist
 from .models import Device, IPAddress, MaintenanceTicket, Profile, Rack, DataCenter, Row, TicketUpdate
+from .forms import DeviceForm, IPAddressForm, TicketForm
 
 # --- Role-Based Access Mixins ---
 
@@ -357,6 +358,47 @@ class TicketUpdateView(LoginRequiredMixin, TechOrManagerRequiredMixin, UpdateVie
             messages.info(self.request, "Ticket metadata updated.")
             
         return response
+
+# --- IPAM Logic (NEW: LO2 & LO7) ---
+
+class IPAddressListView(LoginRequiredMixin, ListView):
+    """Centralized IPAM overview."""
+    model = IPAddress
+    template_name = 'inventory/ip_list.html'
+    context_object_name = 'ips'
+    queryset = IPAddress.objects.select_related('device').all()
+
+class IPAddressCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    """Allocate a new address to the infrastructure."""
+    model = IPAddress
+    form_class = IPAddressForm
+    template_name = 'inventory/ip_form.html'
+    success_url = reverse_lazy('ip_list')
+
+    def test_func(self):
+        return self.request.user.profile.role in ['TECHNICIAN', 'MANAGER']
+
+    def form_valid(self, form):
+        messages.success(self.request, f"IP Address {form.instance.address} successfully allocated.")
+        return super().form_valid(form)
+
+class IPAddressUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = IPAddress
+    form_class = IPAddressForm
+    template_name = 'inventory/ip_form.html'
+    success_url = reverse_lazy('ip_list')
+
+    def test_func(self):
+        return self.request.user.profile.role in ['TECHNICIAN', 'MANAGER']
+
+class IPAddressDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """Decommission an IP address. Restricted to Managers."""
+    model = IPAddress
+    template_name = 'inventory/ip_confirm_delete.html'
+    success_url = reverse_lazy('ip_list')
+
+    def test_func(self):
+        return self.request.user.profile.role == 'MANAGER'
 
 # --- Custom Error Handlers (LO1.1 & UX Enhancement) ---
 

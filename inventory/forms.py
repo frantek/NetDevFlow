@@ -1,5 +1,5 @@
 from django import forms
-from .models import Device, IPAddress, MaintenanceTicket
+from .models import Device, IPAddress, MaintenanceTicket, DataCenter, Row, Rack
 
 class DeviceForm(forms.ModelForm):
     """
@@ -23,6 +23,25 @@ class DeviceForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # Order racks by full DC path
         self.fields['rack'].queryset = Rack.objects.select_related('row__data_center').order_by('row__data_center__name', 'row__name', 'name')
+
+class IPAddressForm(forms.ModelForm):
+    """
+    Dedicated IPAM form for assigning and validating network addresses.
+    """
+    class Meta:
+        model = IPAddress
+        fields = ['address', 'subnet_mask', 'device', 'is_primary']
+        widgets = {
+            'address': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. 192.168.1.50'}),
+            'subnet_mask': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. 255.255.255.0'}),
+            'device': forms.Select(attrs={'class': 'form-select'}),
+            'is_primary': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+    def clean_address(self):
+        address = self.cleaned_data.get('address')
+        # Add custom logic here if you want to restrict specific ranges (LO2.4)
+        return address
 
 class RackForm(forms.ModelForm):
     class Meta:

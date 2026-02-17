@@ -1,0 +1,44 @@
+{% block title %}Decommission {{ object.address }} | NetDevFlow{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center py-5">
+<div class="col-md-6">
+<div class="card border-0 shadow-lg text-center activity-card">
+<div class="card-body p-5">
+<div class="mb-4">
+<i class="fas fa-network-wired fa-4x text-danger opacity-75"></i>
+</div>
+<h2 class="fw-bold mb-3 theme-text-main">Decommission IP Address</h2>
+<p class="theme-text-muted mb-4 h5">
+Are you sure you want to release <strong>{{ object.address }}</strong> from its assignment?
+</p>
+<div class="alert alert-warning border-0 bg-warning-subtle text-dark p-3 mb-4 rounded-3 text-start small">
+<i class="fas fa-info-circle me-2"></i>
+<strong>Note:</strong> Releasing this IP will make it available for future allocation. The linked device will lose this network identity but will remain in the inventory.
+</div>
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-danger btn-lg shadow">Confirm Decommission</button>
+                    <a href="{% url 'ip_list' %}" class="btn btn-outline-secondary">Abort / Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+</div>
+
+<style>
+.theme-text-main { color: var(--text-main) !important; }
+.theme-text-muted { color: var(--text-muted) !important; }
+.activity-card {
+background-color: var(--bg-card) !important;
+border: 1px solid var(--border-color) !important;
+}
+</style>
+
+{% endblock %}
