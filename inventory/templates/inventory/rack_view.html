@@ -5,23 +5,41 @@
 {% block content %}
 <div class="row">
     <div class="col-md-8">
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
             <div>
                 <h2 class="fw-bold mb-0 theme-text-main">{{ rack.name }}</h2>
-                <p class="theme-text-muted">{{ rack.row.data_center.name }} | {{ rack.row.name }}</p>
+                <p class="theme-text-muted mb-0">{{ rack.row.data_center.name }} | {{ rack.row.name }}</p>
             </div>
-            <a href="{% url 'device_create' %}?rack={{ rack.id }}" class="btn btn-primary">
-                <i class="fas fa-plus me-1"></i> Install Hardware
-            </a>
+            
+            <div class="d-flex align-items-center gap-3">
+                <!-- Visual Toggle for Device Images -->
+                <div class="form-check form-switch me-2">
+                    <input class="form-check-input" type="checkbox" id="toggle-device-images">
+                    <label class="form-check-label small theme-text-muted fw-bold text-uppercase" for="toggle-device-images" style="letter-spacing: 0.5px;">
+                        Show Images
+                    </label>
+                </div>
+
+                {% if user.profile.role != 'READONLY' %}
+                <a href="{% url 'device_create' %}?rack={{ rack.id }}" class="btn btn-primary shadow-sm">
+                    <i class="fas fa-plus me-1"></i> Install Hardware
+                </a>
+                {% endif %}
+            </div>
         </div>
 
         <!-- The Physical Rack Visualization -->
-        <div class="rack-container shadow-lg">
+        <div class="rack-container shadow-lg" id="rack-visual-container">
             <div class="rack-frame">
                 {% for slot in slots %}
                     {% if slot.device %}
                         {% if slot.is_start %}
                             <div class="rack-slot occupied" style="height: calc({{ slot.device.size }} * 40px);">
+                                <!-- Background Image Overlay (Hidden by default) -->
+                                {% if slot.device.device_image %}
+                                    <div class="device-image-bg d-none" style="background-image: url('{{ slot.device.device_image.url }}');"></div>
+                                {% endif %}
+                                
                                 <div class="device-label">
                                     <span class="ru-tag">{{ slot.ru }}U</span>
                                     <a href="{% url 'device_detail' slot.device.id %}" class="device-link">
@@ -34,7 +52,7 @@
                         {% endif %}
                     {% else %}
                         <div class="rack-slot empty" style="height: 40px;">
-                            <span class="ru-tag text-muted">{{ slot.ru }}U</span>
+                            <span class="ru-tag empty-ru">{{ slot.ru }}U</span>
                             <span class="empty-text">Empty Slot</span>
                         </div>
                     {% endif %}
@@ -45,35 +63,81 @@
 
     <!-- Rack Stats Sidebar -->
     <div class="col-md-4">
-        <div class="card mb-4 border-0 shadow-sm">
-            <div class="card-header bg-white py-3">
-                <h5 class="fw-bold mb-0">Rack Utilization</h5>
+        <div class="card mb-4 border-0 shadow-sm activity-card">
+            <div class="card-header bg-transparent py-3 border-bottom">
+                <h5 class="fw-bold mb-0 theme-text-main">Rack Utilization</h5>
             </div>
             <div class="card-body">
                 <div class="text-center mb-4">
                     <h1 class="display-4 fw-bold text-primary">{{ rack.ru_capacity }}</h1>
-                    <p class="text-muted">Total Rack Units</p>
+                    <p class="theme-text-muted">Total Rack Units</p>
                 </div>
                 <div class="d-grid gap-2">
-                    <div class="p-3 bg-light rounded d-flex justify-content-between">
-                        <span class="text-muted">Available Space</span>
+                    <div class="p-3 theme-bg-surface rounded d-flex justify-content-between align-items-center">
+                        <span class="theme-text-muted small text-uppercase fw-bold">Available Space</span>
                         <span class="fw-bold text-success">{{ rack.get_available_units }}U</span>
                     </div>
-                    <div class="p-3 bg-light rounded d-flex justify-content-between">
-                        <span class="text-muted">Status</span>
-                        <span class="badge bg-success">Healthy</span>
+                    <div class="p-3 theme-bg-surface rounded d-flex justify-content-between align-items-center">
+                        <span class="theme-text-muted small text-uppercase fw-bold">Status</span>
+                        <span class="badge bg-success-subtle text-success border border-success rounded-pill">Healthy</span>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Compliance & Audit Note -->
+        <div class="p-3 rounded border theme-bg-surface shadow-sm small">
+            <h6 class="fw-bold mb-2 theme-text-main">Rack Compliance</h6>
+            <p class="theme-text-muted mb-0">This enclosure is inspected for airflow efficiency and load balancing. Next audit scheduled: <strong>Q2 2026</strong>.</p>
+        </div>
     </div>
 </div>
 
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const imageToggle = document.getElementById('toggle-device-images');
+    const imageBgs = document.querySelectorAll('.device-image-bg');
+    const occupiedSlots = document.querySelectorAll('.rack-slot.occupied');
+
+    imageToggle.addEventListener('change', (e) => {
+        const show = e.target.checked;
+        imageBgs.forEach(bg => {
+            if (show) {
+                bg.classList.remove('d-none');
+            } else {
+                bg.classList.add('d-none');
+            }
+        });
+
+        occupiedSlots.forEach(slot => {
+            if (show) {
+                slot.classList.add('visual-mode');
+            } else {
+                slot.classList.remove('visual-mode');
+            }
+        });
+    });
+});
+</script>
+
 <style>
+    /* Theme Helpers */
+    .theme-text-main { color: var(--text-main) !important; }
+    .theme-text-muted { color: var(--text-muted) !important; }
+    .activity-card {
+        background-color: var(--bg-card) !important;
+        border: 1px solid var(--border-color) !important;
+    }
+    .theme-bg-surface {
+        background-color: var(--bg-body) !important;
+        border: 1px solid var(--border-color) !important;
+    }
+
+    /* Physical Rack Styling */
     .rack-container {
         background: #222;
         padding: 20px;
-        border-radius: 10px;
+        border-radius: 12px;
         max-width: 600px;
         margin: 0 auto;
         border: 8px solid #444;
@@ -103,6 +167,31 @@
         background: #2c3e50;
         border-left: 5px solid #0d6efd;
         color: white;
+        transition: all 0.3s ease;
+    }
+
+    /* Visual Mode Styles */
+    .device-image-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-size: cover;
+        background-position: center;
+        opacity: 0.6;
+        z-index: 1;
+    }
+
+    .rack-slot.occupied.visual-mode {
+        background: #000;
+        border-left-color: #3d8bfd;
+    }
+
+    .device-label {
+        position: relative;
+        z-index: 2;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.8);
     }
 
     .ru-tag {
@@ -111,6 +200,10 @@
         font-size: 0.75rem;
         width: 30px;
         display: inline-block;
+    }
+
+    .empty-ru {
+        color: #777; /* Higher contrast gray for the RU tag in empty slots */
     }
 
     .device-link {
@@ -128,6 +221,7 @@
         border-radius: 50%;
         position: absolute;
         right: 15px;
+        z-index: 3;
     }
     .device-status-dot.online { background: #198754; box-shadow: 0 0 10px #198754; }
     .device-status-dot.maintenance { background: #ffc107; box-shadow: 0 0 10px #ffc107; }
@@ -136,8 +230,9 @@
         font-size: 0.7rem;
         text-transform: uppercase;
         letter-spacing: 1px;
-        color: #444;
+        color: #777; /* Increased contrast from #444 to be readable on black */
         margin-left: 10px;
+        font-weight: 600;
     }
 
     [data-theme="dark"] .rack-container { border-color: #000; }

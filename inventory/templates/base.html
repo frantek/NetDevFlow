@@ -227,6 +227,41 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             z-index: 1000;
         }
+
+        /* Restricted Access Styling */
+        .pending-card {
+            border-left: 6px solid #ffc107;
+            background-color: var(--bg-card);
+        }
+
+        .theme-text-muted { color: var(--text-muted) !important; }
+        .theme-text-main { color: var(--text-main) !important; }
+
+
+        /* Easter Egg Styling */
+        #easter-egg-container {
+            display: none;
+            background: #000;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            margin-top: 2rem;
+            border: 4px solid var(--border-color);
+        }
+        #game-canvas {
+            display: block;
+            margin: 0 auto;
+            background: linear-gradient(to bottom, #1e3c72, #2a5298);
+            cursor: pointer;
+        }
+        .game-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            text-align: center;
+        }
     </style>
 
     <script>
@@ -237,6 +272,18 @@
     </script>
 </head>
 <body>
+
+    <!-- Django Messages -->
+    {% if messages %}
+    <div class="position-fixed top-0 end-0 p-3" style="z-index: 2000; margin-top: 70px;">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
     <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
         <div class="container">
@@ -305,9 +352,56 @@
         </div>
     </nav>
 
-    <main class="container py-4">
-        {% block content %}{% endblock %}
+    <main class="container py-5">
+        <!-- LO3.1: Global Access Guard -->
+        {% if user.is_authenticated and user.profile.role == 'PENDING' and request.resolver_match.url_name != 'account_logout' %}
+            <div class="row justify-content-center py-5">
+                <div class="col-md-8 col-lg-6 text-center">
+                    <div class="card pending-card p-5 shadow-lg border-0">
+                        <div class="mb-4">
+                            <i class="fas fa-user-clock fa-5x text-warning" id="egg-trigger" style="cursor: pointer;" title="System Maintenance?"></i>
+                        </div>
+                        <h2 class="fw-bold theme-text-main">Access Restricted</h2>
+                        <p class="lead theme-text-muted">
+                            Hi <strong>{{ user.username }}</strong>, welcome to NetDevFlow!
+                        </p>
+                        <p class="theme-text-muted mb-4">
+                            Your account is currently <strong>Pending Approval</strong>. To maintain network security, viewing access is disabled until an administrator verifies your account and assigns you a role.
+                        </p>
+                        <div class="d-grid gap-2">
+                            <a href="mailto:admin@netdevflow.com" class="btn btn-primary btn-lg rounded-pill shadow-sm">
+                                <i class="fas fa-envelope me-2"></i>Request Authorization
+                            </a>
+                            <form method="post" action="{% url 'account_logout' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-link theme-text-muted text-decoration-none">
+                                    Logout and try later
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Hidden Easter Egg Container -->
+                    <div id="easter-egg-container">
+                        <canvas id="game-canvas" width="400" height="500"></canvas>
+                        <div id="game-ui" class="game-overlay">
+                            <h3 class="fw-bold">Infrastructure Escape</h3>
+                            <p>Press Space or Click to Jump</p>
+                            <p class="small opacity-75">Don't let the server crash!</p>
+                            <button class="btn btn-light btn-sm mt-2 rounded-pill px-4" id="start-game">Start Mission</button>
+                        </div>
+                    </div>
+
+                    <p class="mt-4 small theme-text-muted italic">
+                        <i class="fas fa-shield-alt me-1"></i> Security Policy LO3.1: All new registrations are locked by default.
+                    </p>
+                </div>
+            </div>
+        {% else %}
+            {% block content %}{% endblock %}
+        {% endif %}
     </main>
+
 
     <footer class="footer mt-auto">
         <div class="container text-center">
@@ -315,6 +409,150 @@
             <p class="mb-0 small opacity-75">© 2026 — Running with <span class="text-primary fw-bold">Big Boss Mode</span> active lol.</p>
         </div>
     </footer>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const btn = document.createElement('button');
+            btn.className = 'theme-toggle-btn';
+            btn.innerHTML = document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
+            document.body.appendChild(btn);
+
+            btn.onclick = () => {
+                const current = document.documentElement.getAttribute('data-theme');
+                const next = current === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', next);
+                localStorage.setItem('site-theme', next);
+                btn.innerHTML = next === 'dark' ? '☀️' : '🌙';
+            };
+
+            // Easter Egg Logic
+            const trigger = document.getElementById('egg-trigger');
+            const eggContainer = document.getElementById('easter-egg-container');
+            const canvas = document.getElementById('game-canvas');
+            const ctx = canvas.getContext('2d');
+            const startBtn = document.getElementById('start-game');
+            const gameUI = document.getElementById('game-ui');
+
+            if (trigger) {
+                trigger.onclick = () => {
+                    eggContainer.style.display = 'block';
+                    eggContainer.scrollIntoView({ behavior: 'smooth' });
+                };
+            }
+
+            // Flappy Server Game
+            let gameRunning = false;
+            let score = 0;
+            let server = { x: 50, y: 250, velocity: 0, gravity: 0.25, jump: -5, size: 30 };
+            let pipes = [];
+            let frame = 0;
+
+            function initGame() {
+                score = 0;
+                server.y = 250;
+                server.velocity = 0;
+                pipes = [];
+                frame = 0;
+                gameRunning = true;
+                gameUI.style.display = 'none';
+                loop();
+            }
+
+            function drawServer() {
+                ctx.font = '30px serif';
+                ctx.fillText('🖥️', server.x, server.y + 10);
+            }
+
+            function drawPipes() {
+                pipes.forEach(pipe => {
+                    ctx.fillStyle = '#adb5bd';
+                    // Draw Upper Rack
+                    ctx.fillRect(pipe.x, 0, 50, pipe.top);
+                    ctx.fillStyle = '#6c757d';
+                    ctx.fillRect(pipe.x + 5, 0, 40, pipe.top);
+                    
+                    // Draw Lower Rack
+                    ctx.fillStyle = '#adb5bd';
+                    ctx.fillRect(pipe.x, pipe.bottom, 50, canvas.height - pipe.bottom);
+                    ctx.fillStyle = '#6c757d';
+                    ctx.fillRect(pipe.x + 5, pipe.bottom, 40, canvas.height - pipe.bottom);
+
+                    // Add some "cloud" aesthetics
+                    ctx.font = '20px serif';
+                    ctx.fillText('☁️', pipe.x - 20, pipe.top - 20);
+                    ctx.fillText('☁️', pipe.x + 30, pipe.bottom + 40);
+                });
+            }
+
+            function update() {
+                server.velocity += server.gravity;
+                server.y += server.velocity;
+
+                if (frame % 100 === 0) {
+                    const gap = 150;
+                    const top = Math.random() * (canvas.height - gap - 100) + 50;
+                    pipes.push({ x: canvas.width, top: top, bottom: top + gap });
+                }
+
+                pipes.forEach(pipe => {
+                    pipe.x -= 2;
+                    // Collision
+                    if (server.x + 20 > pipe.x && server.x < pipe.x + 50) {
+                        if (server.y < pipe.top || server.y + 20 > pipe.bottom) {
+                            gameOver();
+                        }
+                    }
+                    if (pipe.x === 50) score++;
+                });
+
+                pipes = pipes.filter(p => p.x > -50);
+
+                if (server.y > canvas.height || server.y < 0) {
+                    gameOver();
+                }
+            }
+
+            function gameOver() {
+                gameRunning = false;
+                gameUI.innerHTML = `<h3 class="fw-bold">Connection Lost!</h3><p>Score: ${score}</p><button class="btn btn-light btn-sm mt-2 rounded-pill px-4" id="restart-game">Reboot</button>`;
+                gameUI.style.display = 'block';
+                document.getElementById('restart-game').onclick = initGame;
+            }
+
+            function loop() {
+                if (!gameRunning) return;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw background pattern (grid)
+                ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+                for(let i=0; i<canvas.width; i+=20) {
+                    ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke();
+                }
+                for(let i=0; i<canvas.height; i+=20) {
+                    ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.stroke();
+                }
+
+                update();
+                drawPipes();
+                drawServer();
+                
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 20px sans-serif';
+                ctx.fillText(`Uptime: ${score}s`, 20, 40);
+                
+                frame++;
+                requestAnimationFrame(loop);
+            }
+
+            function jump() {
+                if (gameRunning) server.velocity = server.jump;
+            }
+
+            startBtn.onclick = initGame;
+            canvas.onclick = jump;
+            window.onkeydown = (e) => { if (e.code === 'Space') jump(); };
+        });
+    </script>
 
     <script>
         window.addEventListener('DOMContentLoaded', () => {

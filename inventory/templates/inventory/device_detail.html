@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ device.hostname }} | NetDevFlow{% endblock %}
+{% block title %} {{ device.hostname }} | NetDevFlow {% endblock %}
 
 {% block content %}
 <!-- Enhanced Breadcrumb Navigation (LO1.1) -->
@@ -33,7 +33,7 @@
                     {% if device.device_image %}
                         <img src="{{ device.device_image.url }}" class="img-fluid rounded shadow-sm border" style="max-height: 250px;" alt="{{ device.hostname }}">
                     {% else %}
-                        <div class="p-5 bg-body-tertiary rounded border border-dashed text-center">
+                        <div class="p-5 theme-bg-surface rounded border border-dashed text-center">
                             <i class="fas fa-server fa-4x opacity-10 mb-2"></i>
                             <p class="small theme-text-muted mb-0">No hardware photo available</p>
                         </div>
@@ -56,13 +56,13 @@
                 <!-- DCIM Physical Placement -->
                 <div class="row g-3">
                     <div class="col-sm-4">
-                        <div class="p-3 border rounded bg-body-tertiary h-100">
+                        <div class="p-3 border rounded theme-bg-surface h-100">
                             <label class="small theme-text-muted d-block mb-1">Asset Category</label>
                             <span class="fw-semibold theme-text-main"><i class="fas fa-microchip me-2 text-primary"></i>{{ device.get_device_type_display }}</span>
                         </div>
                     </div>
                     <div class="col-sm-8">
-                        <div class="p-3 border rounded bg-body-tertiary h-100">
+                        <div class="p-3 border rounded theme-bg-surface h-100">
                             <label class="small theme-text-muted d-block mb-1">Physical Location</label>
                             {% if device.rack %}
                                 <div class="theme-text-main fw-semibold">
@@ -98,13 +98,13 @@
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-transparent py-3 d-flex justify-content-between align-items-center border-bottom">
                 <h5 class="mb-0 fw-bold theme-text-main">Incident & Maintenance Logs</h5>
-                <span class="badge bg-body-tertiary theme-text-main border">{{ device.tickets.all.count }} Records</span>
+                <span class="badge theme-bg-surface theme-text-main border">{{ device.tickets.all.count }} Records</span>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead>
-                            <tr class="bg-body-tertiary">
+                            <tr class="theme-bg-surface">
                                 <th class="ps-3 border-0">Date</th>
                                 <th class="border-0">Incident Details</th>
                                 <th class="border-0">Priority</th>
@@ -191,8 +191,9 @@
                 </ul>
             </div>
             {% if user.profile.role != 'READONLY' %}
-            <div class="card-footer bg-body-tertiary border-0 py-3 text-center">
-                <a href="{% url 'admin:inventory_ipaddress_add' %}" class="btn btn-outline-primary btn-sm px-4">
+            <div class="card-footer theme-bg-surface border-0 py-3 text-center">
+                <!-- Changed from admin URL to application ip_create URL -->
+                <a href="{% url 'ip_create' %}?device={{ device.id }}" class="btn btn-outline-primary btn-sm px-4">
                     <i class="fas fa-plus-circle me-1"></i> Allocate New IP
                 </a>
             </div>
@@ -208,7 +209,6 @@
             <div class="card-body">
                 <p class="small text-white-50 mb-4">Manage lifecycle status or log technical incidents for this hardware asset.</p>
                 <div class="d-grid gap-3">
-                    <!-- Added Edit Device Button -->
                     <a href="{% url 'device_update' device.id %}" class="btn btn-outline-light fw-bold">
                         <i class="fas fa-edit me-2"></i> Edit Device Info
                     </a>
@@ -231,7 +231,7 @@
         {% endif %}
 
         <!-- Compliance & Audit Information -->
-        <div class="mt-4 p-3 rounded border bg-body-tertiary shadow-sm small">
+        <div class="mt-4 p-3 rounded border theme-bg-surface shadow-sm small">
             <h6 class="fw-bold mb-2 theme-text-main">Audit Compliance</h6>
             <p class="theme-text-muted mb-0">This hardware asset is subject to standard infrastructure auditing. Last physical status verification: <strong>{{ device.updated_at|date:"Y-m-d" }}</strong>.</p>
         </div>
@@ -243,5 +243,12 @@
     .theme-text-muted { color: var(--text-muted) !important; }
     .theme-table-row:hover { background-color: var(--table-hover) !important; }
     .border-dashed { border-style: dashed !important; }
+    
+    /* Ensure surfaces like Asset Category and Audit Compliance adapt to the theme */
+    .theme-bg-surface { 
+        background-color: var(--bg-body) !important; 
+        border-color: var(--border-color) !important; 
+        color: var(--text-main) !important;
+    }
 </style>
 {% endblock %}

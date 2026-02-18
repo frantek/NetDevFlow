@@ -3,15 +3,18 @@
 {% block title %}Dashboard | NetDevFlow{% endblock %}
 
 {% block content %}
-<!-- Header Section (LO1.1) -->
 <!-- Header Section -->
 <div class="row mb-4">
     <div class="col-md-8">
         <h2 class="fw-bold theme-text-main">Command Center</h2>
-        <p class="theme-text-muted">Real-time infrastructure health and network segment tracking.</p>
+        {% if user.is_authenticated %}
+            <p class="theme-text-muted">Real-time infrastructure health and network segment tracking.</p>
+        {% else %}
+            <p class="theme-text-muted">Welcome to NetDevFlow. Please sign in to manage infrastructure assets.</p>
+        {% endif %}
     </div>
     <div class="col-md-4 text-md-end">
-        {% if user.profile.role != 'READONLY' %}
+        {% if user.is_authenticated and user.profile.role != 'READONLY' %}
             <div class="btn-group shadow-sm">
                 <a href="{% url 'device_create' %}" class="btn btn-primary">
                     <i class="fas fa-plus me-1"></i> Add Device
@@ -20,235 +23,282 @@
                     <i class="fas fa-ticket me-1"></i> New Ticket
                 </a>
             </div>
+        {% elif not user.is_authenticated %}
+            <a href="{% url 'account_login' %}" class="btn btn-primary shadow-sm px-4">
+                <i class="fas fa-sign-in-alt me-2"></i> Sign In to Access HQ
+            </a>
         {% endif %}
     </div>
 </div>
 
-<!-- Row 1: Infrastructure Status (Restored Original Cards) -->
-<h6 class="text-uppercase theme-text-muted small fw-bold mb-3" style="letter-spacing: 1px;">Infrastructure Status</h6>
-<div class="row g-4 mb-4">
-    <div class="col-md-3">
-        <div class="card stats-card border-success h-100 shadow-sm">
-            <div class="card-body">
-                <h6 class="text-uppercase theme-text-muted small fw-bold">Online Assets</h6>
-                <div class="d-flex align-items-center">
-                    <h2 class="mb-0 me-3">{{ online_count }}</h2>
-                    <i class="fas fa-check-circle opacity-25 fa-2x"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card stats-card border-danger h-100 shadow-sm">
-            <div class="card-body">
-                <h6 class="text-uppercase theme-text-muted small fw-bold">Critical Outages</h6>
-                <div class="d-flex align-items-center">
-                    <h2 class="mb-0 me-3">{{ critical_tickets }}</h2>
-                    <i class="fas fa-exclamation-triangle opacity-25 fa-2x"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card stats-card border-secondary h-100 shadow-sm">
-            <div class="card-body">
-                <h6 class="text-uppercase theme-text-muted small fw-bold">Total Devices</h6>
-                <div class="d-flex align-items-center">
-                    <h2 class="mb-0 me-3">{{ total_devices }}</h2>
-                    <i class="fas fa-server opacity-25 fa-2x"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card stats-card border-secondary h-100 shadow-sm">
-            <div class="card-body">
-                <h6 class="text-uppercase theme-text-muted small fw-bold">Active Sites</h6>
-                <div class="d-flex align-items-center">
-                    <h2 class="mb-0 me-3">{{ dc_stats.count }}</h2>
-                    <i class="fas fa-city opacity-25 fa-2x"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Row 2: Network Segmentation (IPAM Cards) -->
-<h6 class="text-uppercase theme-text-muted small fw-bold mb-3 mt-2" style="letter-spacing: 1px;">Network Segmentation (IPAM)</h6>
-<div class="row g-4 mb-5">
-    <div class="col-md-3">
-        <div class="card stats-card border-primary h-100 shadow-sm">
-            <div class="card-body">
-                <h6 class="text-uppercase theme-text-muted small fw-bold">VRF Instances</h6>
-                <div class="d-flex align-items-center">
-                    <h2 class="mb-0 me-3">{{ vrf_count }}</h2>
-                    <i class="fas fa-project-diagram opacity-25 fa-2x"></i>
-                </div>
-                <a href="{% url 'vrf_list' %}" class="stretched-link"></a>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card stats-card border-info h-100 shadow-sm">
-            <div class="card-body">
-                <h6 class="text-uppercase theme-text-muted small fw-bold">VLANs</h6>
-                <div class="d-flex align-items-center">
-                    <h2 class="mb-0 me-3">{{ vlan_count }}</h2>
-                    <i class="fas fa-layer-group opacity-25 fa-2x"></i>
-                </div>
-                <a href="{% url 'vlan_list' %}" class="stretched-link"></a>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card stats-card border-info h-100 shadow-sm">
-            <div class="card-body">
-                <h6 class="text-uppercase theme-text-muted small fw-bold">Managed Prefixes</h6>
-                <div class="d-flex align-items-center">
-                    <h2 class="mb-0 me-3">{{ prefix_count }}</h2>
-                    <i class="fas fa-network-wired opacity-25 fa-2x"></i>
-                </div>
-                <a href="{% url 'prefix_list' %}" class="stretched-link"></a>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card stats-card border-primary h-100 shadow-sm">
-            <div class="card-body">
-                <h6 class="text-uppercase theme-text-muted small fw-bold">IP Allocations</h6>
-                <div class="d-flex align-items-center">
-                    <h2 class="mb-0 me-3">{{ ip_count }}</h2>
-                    <i class="fas fa-address-card opacity-25 fa-2x"></i>
-                </div>
-                <a href="{% url 'ip_list' %}" class="stretched-link"></a>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row g-4">
-    <!-- Main Content: Recent Activity -->
-    <div class="col-lg-8">
-        <div class="card activity-card shadow-sm h-100">
-            <div class="card-header bg-transparent py-3 border-bottom d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 fw-bold theme-text-main">Recent Maintenance Activity</h5>
-                <a href="{% url 'kanban_board' %}" class="btn btn-sm btn-link theme-text-muted text-decoration-none">
-                    View Board <i class="fas fa-chevron-right ms-1"></i>
-                </a>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead>
-                            <tr>
-                                <th class="ps-3">ID</th>
-                                <th>Device</th>
-                                <th>Severity</th>
-                                <th>Status</th>
-                                <th class="text-end pe-3">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for ticket in recent_tickets %}
-                            <tr class="theme-table-row">
-                                <td class="ps-3 fw-bold text-primary">#{{ ticket.id }}</td>
-                                <td class="theme-text-bold">{{ ticket.device.hostname }}</td>
-                                <td>
-                                    {% if ticket.severity == 'CRITICAL' %}
-                                        <span class="badge bg-danger">Critical</span>
-                                    {% elif ticket.severity == 'WARNING' %}
-                                        <span class="badge bg-warning text-dark">Warning</span>
-                                    {% else %}
-                                        <span class="badge bg-info">Info</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <span class="badge rounded-pill bg-body-tertiary theme-text-muted border">
-                                        {{ ticket.status }}
-                                    </span>
-                                </td>
-                                <td class="text-end pe-3">
-                                    <a href="{% url 'ticket_update' ticket.id %}" class="btn btn-outline-secondary btn-sm">Manage</a>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="5" class="text-center py-5 theme-text-muted">
-                                    <i class="fas fa-clipboard-check fa-2x mb-2 opacity-25"></i>
-                                    <p class="mb-0">Infrastructure health is 100%. No active tickets.</p>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Sidebar: DCIM Quick View -->
-    <div class="col-lg-4">
-        <div class="card activity-card shadow-sm h-100">
-            <div class="card-header bg-transparent py-3 border-bottom">
-                <h5 class="mb-0 fw-bold theme-text-main">Data Center Status</h5>
-            </div>
-            <div class="card-body">
-                {% for dc in dc_stats %}
-                <div class="d-flex justify-content-between align-items-center mb-3 p-3 rounded bg-body-tertiary border border-theme">
-                    <div>
-                        <span class="fw-bold d-block theme-text-main">{{ dc.name }}</span>
-                        <small class="theme-text-muted">{{ dc.rack_count }} Racks active</small>
-                    </div>
-                    <div class="text-end">
-                        <i class="fas fa-server text-primary opacity-50"></i>
+{% if user.is_authenticated %}
+    <!-- Row 1: Infrastructure Status -->
+    <h6 class="text-uppercase theme-text-muted small fw-bold mb-3" style="letter-spacing: 1px;">Infrastructure Status</h6>
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card stats-card border-success h-100 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-uppercase theme-text-muted small fw-bold">Online Assets</h6>
+                    <div class="d-flex align-items-center">
+                        <h2 class="mb-0 me-3">{{ online_count }}</h2>
+                        <i class="fas fa-check-circle opacity-25 fa-2x text-success"></i>
                     </div>
                 </div>
-                {% empty %}
-                <div class="text-center py-4">
-                    <i class="fas fa-city fa-2x theme-text-muted opacity-25 mb-2"></i>
-                    <p class="theme-text-muted small">No Data Centers defined in system.</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card border-danger h-100 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-uppercase theme-text-muted small fw-bold">Critical Outages</h6>
+                    <div class="d-flex align-items-center">
+                        <h2 class="mb-0 me-3 text-danger">{{ critical_tickets }}</h2>
+                        <i class="fas fa-exclamation-triangle opacity-25 fa-2x text-danger"></i>
+                    </div>
                 </div>
-                {% endfor %}
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card border-theme h-100 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-uppercase theme-text-muted small fw-bold">Total Devices</h6>
+                    <div class="d-flex align-items-center">
+                        <h2 class="mb-0 me-3">{{ total_devices }}</h2>
+                        <i class="fas fa-server opacity-25 fa-2x theme-text-muted"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card border-theme h-100 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-uppercase theme-text-muted small fw-bold">Active Sites</h6>
+                    <div class="d-flex align-items-center">
+                        <h2 class="mb-0 me-3">{{ dc_stats.count }}</h2>
+                        <i class="fas fa-city opacity-25 fa-2x theme-text-muted"></i>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</div>
+
+    <!-- Row 2: Network Segmentation (IPAM Cards) -->
+    <h6 class="text-uppercase theme-text-muted small fw-bold mb-3 mt-2" style="letter-spacing: 1px;">Network Segmentation (IPAM)</h6>
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="card stats-card border-primary h-100 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-uppercase theme-text-muted small fw-bold">VRF Instances</h6>
+                    <div class="d-flex align-items-center">
+                        <h2 class="mb-0 me-3">{{ vrf_count }}</h2>
+                        <i class="fas fa-project-diagram opacity-25 fa-2x text-primary"></i>
+                    </div>
+                    <small class="theme-text-muted d-block mt-1">Virtual Routing Tables</small>
+                    <a href="{% url 'vrf_list' %}" class="stretched-link"></a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card border-info h-100 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-uppercase theme-text-muted small fw-bold">VLANs</h6>
+                    <div class="d-flex align-items-center">
+                        <h2 class="mb-0 me-3">{{ vlan_count }}</h2>
+                        <i class="fas fa-layer-group opacity-25 fa-2x text-info"></i>
+                    </div>
+                    <small class="theme-text-muted d-block mt-1">L2 Broadcast Domains</small>
+                    <a href="{% url 'vlan_list' %}" class="stretched-link"></a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card border-info h-100 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-uppercase theme-text-muted small fw-bold">Managed Prefixes</h6>
+                    <div class="d-flex align-items-center">
+                        <h2 class="mb-0 me-3">{{ prefix_count }}</h2>
+                        <i class="fas fa-network-wired opacity-25 fa-2x text-info"></i>
+                    </div>
+                    <small class="theme-text-muted d-block mt-1">Subnet Containers</small>
+                    <a href="{% url 'prefix_list' %}" class="stretched-link"></a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card border-primary h-100 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-uppercase theme-text-muted small fw-bold">IP Allocations</h6>
+                    <div class="d-flex align-items-center">
+                        <h2 class="mb-0 me-3">{{ ip_count }}</h2>
+                        <i class="fas fa-address-card opacity-25 fa-2x text-primary"></i>
+                    </div>
+                    <!-- Added usage label to provide better network context (LO2.2 Read) -->
+                    <small class="theme-text-muted d-block mt-1">Addresses Assigned</small>
+                    <a href="{% url 'ip_list' %}" class="stretched-link"></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Main Content: Recent Activity -->
+        <div class="col-lg-8">
+            <div class="card activity-card shadow-sm h-100">
+                <div class="card-header bg-transparent py-3 border-bottom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold theme-text-main">Recent Maintenance Activity</h5>
+                    <a href="{% url 'kanban_board' %}" class="btn btn-sm btn-link theme-text-muted text-decoration-none">
+                        View Board <i class="fas fa-chevron-right ms-1"></i>
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="ps-3">ID</th>
+                                    <th>Device</th>
+                                    <th>Severity</th>
+                                    <th>Status</th>
+                                    <th class="text-end pe-3">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for ticket in recent_tickets %}
+                                <tr class="theme-table-row">
+                                    <td class="ps-3 fw-bold text-primary">#{{ ticket.id }}</td>
+                                    <td class="theme-text-bold">{{ ticket.device.hostname }}</td>
+                                    <td>
+                                        {% if ticket.severity == 'CRITICAL' %}
+                                            <span class="badge bg-danger">Critical</span>
+                                        {% elif ticket.severity == 'WARNING' %}
+                                            <span class="badge bg-warning text-dark">Warning</span>
+                                        {% else %}
+                                            <span class="badge bg-info">Info</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge rounded-pill theme-bg-surface theme-text-muted border">
+                                            {{ ticket.status }}
+                                        </span>
+                                    </td>
+                                    <td class="text-end pe-3">
+                                        <a href="{% url 'ticket_update' ticket.id %}" class="btn btn-outline-secondary btn-sm">Manage</a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-5 theme-text-muted">
+                                        <i class="fas fa-clipboard-check fa-2x mb-2 opacity-25"></i>
+                                        <p class="mb-0">Infrastructure health is 100%. No active tickets.</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar: DCIM Quick View -->
+        <div class="col-lg-4">
+            <div class="card activity-card shadow-sm h-100">
+                <div class="card-header bg-transparent py-3 border-bottom">
+                    <h5 class="mb-0 fw-bold theme-text-main">Data Center Status</h5>
+                </div>
+                <div class="card-body">
+                    {% for dc in dc_stats %}
+                    <div class="d-flex justify-content-between align-items-center mb-3 p-3 rounded theme-bg-surface border border-theme">
+                        <div>
+                            <span class="fw-bold d-block theme-text-main">{{ dc.name }}</span>
+                            <small class="theme-text-muted">{{ dc.rack_count }} Racks active</small>
+                        </div>
+                        <div class="text-end">
+                            <i class="fas fa-server text-primary opacity-50"></i>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-city fa-2x theme-text-muted opacity-25 mb-2"></i>
+                        <p class="theme-text-muted small">No Data Centers defined in system.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <!-- Public/Guest View -->
+    <div class="row justify-content-center py-5">
+        <div class="col-lg-10">
+            <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 20px;">
+                <div class="row g-0">
+                    <div class="col-md-6 bg-primary d-flex align-items-center justify-content-center p-5 text-white">
+                        <div class="text-center">
+                            <i class="fas fa-network-wired fa-5x mb-4"></i>
+                            <h1 class="fw-bold">NetDevFlow</h1>
+                            <p class="lead opacity-75">Unified Infrastructure & Incident Control</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 p-5 bg-card">
+                        <h3 class="fw-bold theme-text-main mb-4">Internal Access Required</h3>
+                        <p class="theme-text-muted mb-4">
+                            You are viewing the public gateway for the NetDevFlow management suite. To view active maintenance tickets, IP allocations, or device inventory, please authenticate with your staff credentials.
+                        </p>
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'account_login' %}" class="btn btn-primary btn-lg shadow-sm">
+                                <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                            </a>
+                            <a href="{% url 'account_signup' %}" class="btn btn-outline-secondary">
+                                Request Access
+                            </a>
+                        </div>
+                        <div class="mt-4 pt-3 border-top theme-border">
+                            <small class="theme-text-muted italic">
+                                <i class="fas fa-info-circle me-1"></i> Public viewing of maintenance logs is disabled for security compliance.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
 
 <style>
-    /* Theme Helpers */
     .theme-text-main { color: var(--text-main) !important; }
     .theme-text-muted { color: var(--text-muted) !important; }
-    .bg-body-tertiary { background-color: var(--bg-body) !important; }
-    .border-theme { border-color: var(--border-color) !important; }
     
-    /* Activity Card & Table Theme Sync */
     .activity-card { 
         background-color: var(--bg-card) !important; 
         border: 1px solid var(--border-color) !important; 
     }
-    
-    .table thead th { 
-        background-color: var(--bg-body) !important; 
-        color: var(--text-muted) !important; 
-        text-transform: uppercase; 
-        font-size: 0.75rem; 
-        border-bottom: 2px solid var(--border-color) !important; 
-    }
-    
-    /* Crucial Dark Mode Fix: Removing white backgrounds from rows */
-    .table tr, .table td { 
-        background-color: transparent !important; 
-        color: inherit !important; 
-        border-bottom-color: var(--border-color) !important; 
-    }
-    
-    .theme-table-row:hover { 
-        background-color: var(--table-hover) !important; 
+
+    /* Theme-aware background for badges and sidebar containers */
+    .theme-bg-surface {
+        background-color: var(--bg-body) !important;
+        border-color: var(--border-color) !important;
+        color: var(--text-main) !important;
     }
 
-    /* Ensuring Secondary/Recent Updates card respects theme text variable */
-    .stats-card.border-secondary {
-        border-top: 4px solid var(--text-muted) !important;
+    .stats-card {
+        background-color: var(--bg-card) !important;
+        border-width: 1px;
+    }
+
+    .stats-card.border-theme {
+        border-color: var(--border-color) !important;
+    }
+
+    .theme-border { border-color: var(--border-color) !important; }
+    .italic { font-style: italic; }
+
+    .theme-table-row:hover {
+        background-color: var(--table-hover) !important;
+    }
+
+    /* Dark mode specific badge adjustments */
+    [data-theme="dark"] .badge.bg-body-tertiary {
+        background-color: var(--border-color) !important;
     }
 </style>
 {% endblock %}

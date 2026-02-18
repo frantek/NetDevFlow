@@ -3,50 +3,101 @@
 {% block title %}VLAN Management | NetDevFlow{% endblock %}
 
 {% block content %}
+
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h2 class="fw-bold mb-0 theme-text-main">VLAN Management</h2>
-        <p class="theme-text-muted">Layer 2 broadcast domains scoped per site.</p>
-    </div>
-    <a href="{% url 'vlan_create' %}" class="btn btn-primary shadow-sm">
-        <i class="fas fa-plus me-1"></i> Add VLAN
-    </a>
+<div>
+<h2 class="fw-bold mb-0 theme-text-main">VLAN Management</h2>
+<p class="theme-text-muted">Layer 2 broadcast domains scoped per site.</p>
+</div>
+{% if user.profile.role != 'READONLY' %}
+<a href="{% url 'vlan_create' %}" class="btn btn-primary shadow-sm">
+<i class="fas fa-plus me-1"></i> Add VLAN
+</a>
+{% endif %}
 </div>
 
 <div class="card activity-card shadow-sm">
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead>
-                    <tr>
-                        <th class="ps-4">ID</th>
-                        <th>Name</th>
-                        <th>Site / Data Center</th>
-                        <th>Status</th>
-                        <th class="text-end pe-4">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for vlan in vlans %}
-                    <tr class="theme-table-row">
-                        <td class="ps-4 fw-bold text-primary">VLAN {{ vlan.vid }}</td>
-                        <td class="theme-text-main">{{ vlan.name }}</td>
-                        <td>{{ vlan.data_center.name|default:"Global" }}</td>
-                        <td>
-                            <span class="badge {% if vlan.status == 'ACTIVE' %}bg-success{% else %}bg-secondary{% endif %} rounded-pill">
-                                {{ vlan.status }}
-                            </span>
-                        </td>
-                        <td class="text-end pe-4">
-                            <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></button>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="5" class="text-center py-5 theme-text-muted">No VLANs defined.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+<div class="card-body p-0">
+<div class="table-responsive">
+<table class="table table-hover align-middle mb-0">
+<thead>
+<tr>
+<th class="ps-4">VLAN ID</th>
+<th>Name</th>
+<th>Site / Data Center</th>
+<th>Status</th>
+<th class="text-end pe-4">Actions</th>
+</tr>
+</thead>
+<tbody>
+{% for vlan in vlans %}
+<tr class="theme-table-row">
+<td class="ps-4">
+<span class="badge bg-primary px-3 py-2">VID {{ vlan.vid }}</span>
+</td>
+<td class="theme-text-main fw-bold">
+<!-- Link added to the name for better UX clickability -->
+<a href="{% url 'vlan_update' vlan.id %}" class="text-decoration-none theme-text-main">
+{{ vlan.name }}
+</a>
+</td>
+<td class="theme-text-main">
+{% if vlan.data_center %}
+<i class="fas fa-city me-1 opacity-50"></i>{{ vlan.data_center.name }}
+{% else %}
+<span class="text-muted small">Global</span>
+{% endif %}
+</td>
+<td>
+<span class="badge {% if vlan.status == 'ACTIVE' %}bg-success{% elif vlan.status == 'RESERVED' %}bg-warning text-dark{% else %}bg-secondary{% endif %} rounded-pill">
+{{ vlan.status }}
+</span>
+</td>
+<td class="text-end pe-4">
+<div class="btn-group shadow-sm">
+{% if user.profile.role != 'READONLY' %}
+<a href="{% url 'vlan_update' vlan.id %}" class="btn btn-sm btn-outline-secondary" title="Edit VLAN">
+<i class="fas fa-edit"></i>
+</a>
+{% endif %}
+{% if user.profile.role == 'MANAGER' %}
+<a href="{% url 'vlan_delete' vlan.id %}" class="btn btn-sm btn-outline-danger" title="Delete VLAN">
+<i class="fas fa-trash-alt"></i>
+</a>
+{% endif %}
 </div>
+</td>
+</tr>
+{% empty %}
+<tr>
+<td colspan="5" class="text-center py-5 theme-text-muted">
+<i class="fas fa-layer-group fa-3x mb-3 opacity-25 d-block mx-auto"></i>
+No VLANs defined.
+</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+<style>
+.theme-text-main { color: var(--text-main) !important; }
+.theme-text-muted { color: var(--text-muted) !important; }
+.activity-card {
+background-color: var(--bg-card) !important;
+border: 1px solid var(--border-color) !important;
+}
+.table thead th {
+background-color: var(--bg-body) !important;
+color: var(--text-muted) !important;
+text-transform: uppercase;
+font-size: 0.75rem;
+letter-spacing: 1px;
+border-bottom: 2px solid var(--border-color) !important;
+}
+.theme-table-row:hover { background-color: var(--table-hover) !important; }
+</style>
+
 {% endblock %}

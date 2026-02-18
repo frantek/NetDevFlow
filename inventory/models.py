@@ -17,6 +17,7 @@ class Profile(models.Model):
         ('MANAGER', 'Infrastructure Manager'),
         ('TECHNICIAN', 'Field Technician'),
         ('READONLY', 'Read-Only Auditor'),
+        ('PENDING', 'Pending Approval'),  # New users start here
     ]
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     role = models.CharField(
