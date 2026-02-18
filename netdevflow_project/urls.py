@@ -26,7 +26,9 @@ urlpatterns = [
     # Main Application URLs
     path('', include('inventory.urls')),
     # Authentication (Standard Django Auth for Login/Logout)
-    path('accounts/', include('django.contrib.auth.urls')),
+    # path('accounts/', include('django.contrib.auth.urls')),
+    path('accounts/', include('allauth.urls')),
+    path('auth/', include('django.contrib.auth.urls')),
 ]
 if settings.DEBUG:
     urlpatterns += static(

@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% load socialaccount %}
+
+{% block title %}Login | NetDevFlow{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center" style="min-height: 65vh;">
+    <div class="col-md-5 col-lg-4">
+        <div class="text-center mb-4">
+            <h1 class="fw-bold text-primary">NetDevFlow</h1>
+            <p class="theme-text-muted">Infrastructure Control Access</p>
+        </div>
+
+        <div class="card border-0 shadow-md bg-card">
+            <div class="card-body p-4 p-lg-5">
+                <h4 class="fw-bold theme-text-main mb-3">Sign In</h4>
+                
+                <form method="post" action="{% url 'account_login' %}">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger small border-0 shadow-sm">
+                            {{ form.non_field_errors.as_text }}
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label for="id_login" class="form-label small text-uppercase fw-bold theme-text-muted">Username</label>
+                        <input type="text" name="login" class="form-control" id="id_login" placeholder="Your username" required>
+                        {% if form.login.errors %}
+                            <div class="text-danger small mt-1">{{ form.login.errors.as_text }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="id_password" class="form-label small text-uppercase fw-bold theme-text-muted">Password</label>
+                        <input type="password" name="password" class="form-control" id="id_password" placeholder="••••••••" required>
+                        {% if form.password.errors %}
+                            <div class="text-danger small mt-1">{{ form.password.errors.as_text }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-primary btn-lg shadow-sm fw-bold">Sign In</button>
+                    </div>
+                </form>
+
+                {% get_providers as socialaccount_providers %}
+                {% if socialaccount_providers %}
+                    <div class="position-relative my-4">
+                        <hr class="theme-border">
+                        <span class="position-absolute top-50 start-50 translate-middle px-3 bg-card theme-text-muted small">Or continue with</span>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        {% for provider in socialaccount_providers %}
+                            <a title="{{ provider.name }}" 
+                               class="btn btn-outline-secondary d-flex align-items-center justify-content-center gap-2 py-2" 
+                               href="{% provider_login_url provider.id process='login' %}">
+                                {% if provider.id == 'github' %}
+                                    <i class="fab fa-github"></i>
+                                {% elif provider.id == 'google' %}
+                                    <i class="fab fa-google"></i>
+                                {% else %}
+                                    <i class="fas fa-sign-in-alt"></i>
+                                {% endif %}
+                                {{ provider.name }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="mt-4 pt-3 border-top theme-border text-center">
+                    <p class="small theme-text-muted mb-0">
+                        Don't have an account? 
+                        <a href="{% url 'account_signup' %}" class="text-primary fw-bold text-decoration-none">Sign Up</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 text-center">
+            <a href="{% url 'dashboard' %}" class="text-decoration-none small theme-text-muted">
+                <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .theme-border { border-color: var(--border-color) !important; }
+</style>
+{% endblock %}

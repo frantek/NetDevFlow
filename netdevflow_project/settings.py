@@ -29,6 +29,15 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+AUTHENTICATION_BACKENDS = [
+
+    # Needed to login by username in Django admin, regardless of `allauth`
+    'django.contrib.auth.backends.ModelBackend',
+
+    # `allauth` specific authentication methods, such as login by email
+    'allauth.account.auth_backends.AuthenticationBackend',
+
+]
 
 # Application definition
 
@@ -40,6 +49,128 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+
+    'allauth.socialaccount.providers.agave',
+    'allauth.socialaccount.providers.amazon',
+    'allauth.socialaccount.providers.amazon_cognito',
+    'allauth.socialaccount.providers.angellist',
+    'allauth.socialaccount.providers.apple',
+    'allauth.socialaccount.providers.asana',
+    'allauth.socialaccount.providers.auth0',
+    'allauth.socialaccount.providers.authentiq',
+    'allauth.socialaccount.providers.baidu',
+    'allauth.socialaccount.providers.basecamp',
+    'allauth.socialaccount.providers.battlenet',
+    'allauth.socialaccount.providers.bitbucket_oauth2',
+    'allauth.socialaccount.providers.bitly',
+    'allauth.socialaccount.providers.box',
+    'allauth.socialaccount.providers.cilogon',
+    'allauth.socialaccount.providers.clever',
+    'allauth.socialaccount.providers.coinbase',
+    'allauth.socialaccount.providers.dataporten',
+    'allauth.socialaccount.providers.daum',
+    'allauth.socialaccount.providers.digitalocean',
+    'allauth.socialaccount.providers.dingtalk',
+    'allauth.socialaccount.providers.discogs',
+    'allauth.socialaccount.providers.discord',
+    'allauth.socialaccount.providers.disqus',
+    'allauth.socialaccount.providers.douban',
+    'allauth.socialaccount.providers.doximity',
+    'allauth.socialaccount.providers.draugiem',
+    'allauth.socialaccount.providers.drip',
+    'allauth.socialaccount.providers.dropbox',
+    'allauth.socialaccount.providers.dwolla',
+    'allauth.socialaccount.providers.edmodo',
+    'allauth.socialaccount.providers.edx',
+    'allauth.socialaccount.providers.eventbrite',
+    'allauth.socialaccount.providers.eveonline',
+    'allauth.socialaccount.providers.evernote',
+    'allauth.socialaccount.providers.exist',
+    'allauth.socialaccount.providers.facebook',
+    'allauth.socialaccount.providers.feedly',
+    'allauth.socialaccount.providers.figma',
+    'allauth.socialaccount.providers.fivehundredpx',
+    'allauth.socialaccount.providers.flickr',
+    'allauth.socialaccount.providers.foursquare',
+    'allauth.socialaccount.providers.frontier',
+    'allauth.socialaccount.providers.fxa',
+    'allauth.socialaccount.providers.gitea',
+    'allauth.socialaccount.providers.github',
+    'allauth.socialaccount.providers.gitlab',
+    'allauth.socialaccount.providers.globus',
+    'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.gumroad',
+    'allauth.socialaccount.providers.hubic',
+    'allauth.socialaccount.providers.instagram',
+    'allauth.socialaccount.providers.jupyterhub',
+    'allauth.socialaccount.providers.kakao',
+    'allauth.socialaccount.providers.lemonldap',
+    "allauth.socialaccount.providers.lichess",
+    'allauth.socialaccount.providers.line',
+    # 'allauth.socialaccount.providers.linkedin',
+    'allauth.socialaccount.providers.linkedin_oauth2',
+    'allauth.socialaccount.providers.mailchimp',
+    'allauth.socialaccount.providers.mailcow',
+    'allauth.socialaccount.providers.mailru',
+    'allauth.socialaccount.providers.mediawiki',
+    'allauth.socialaccount.providers.meetup',
+    'allauth.socialaccount.providers.miro',
+    'allauth.socialaccount.providers.microsoft',
+    'allauth.socialaccount.providers.naver',
+    'allauth.socialaccount.providers.nextcloud',
+    'allauth.socialaccount.providers.notion',
+    'allauth.socialaccount.providers.odnoklassniki',
+    'allauth.socialaccount.providers.openstreetmap',
+    'allauth.socialaccount.providers.orcid',
+    'allauth.socialaccount.providers.patreon',
+    'allauth.socialaccount.providers.paypal',
+    # 'allauth.socialaccount.providers.persona',
+    'allauth.socialaccount.providers.pinterest',
+    'allauth.socialaccount.providers.pocket',
+    "allauth.socialaccount.providers.questrade",
+    'allauth.socialaccount.providers.quickbooks',
+    'allauth.socialaccount.providers.reddit',
+    'allauth.socialaccount.providers.robinhood',
+    'allauth.socialaccount.providers.salesforce',
+    'allauth.socialaccount.providers.sharefile',
+    'allauth.socialaccount.providers.shopify',
+    'allauth.socialaccount.providers.slack',
+    'allauth.socialaccount.providers.snapchat',
+    'allauth.socialaccount.providers.soundcloud',
+    'allauth.socialaccount.providers.spotify',
+    'allauth.socialaccount.providers.stackexchange',
+    'allauth.socialaccount.providers.stocktwits',
+    'allauth.socialaccount.providers.strava',
+    'allauth.socialaccount.providers.stripe',
+    'allauth.socialaccount.providers.telegram',
+    'allauth.socialaccount.providers.trainingpeaks',
+    'allauth.socialaccount.providers.trello',
+    'allauth.socialaccount.providers.tumblr',
+    'allauth.socialaccount.providers.tumblr_oauth2',
+    'allauth.socialaccount.providers.twentythreeandme',
+    'allauth.socialaccount.providers.twitch',
+    'allauth.socialaccount.providers.twitter',
+    'allauth.socialaccount.providers.twitter_oauth2',
+    'allauth.socialaccount.providers.untappd',
+    'allauth.socialaccount.providers.vimeo',
+    'allauth.socialaccount.providers.vimeo_oauth2',
+    'allauth.socialaccount.providers.vk',
+    'allauth.socialaccount.providers.wahoo',
+    'allauth.socialaccount.providers.weibo',
+    'allauth.socialaccount.providers.weixin',
+    'allauth.socialaccount.providers.windowslive',
+    'allauth.socialaccount.providers.xing',
+    'allauth.socialaccount.providers.yahoo',
+    'allauth.socialaccount.providers.yandex',
+    'allauth.socialaccount.providers.ynab',
+    'allauth.socialaccount.providers.zoho',
+    'allauth.socialaccount.providers.zoom',
+    'allauth.socialaccount.providers.okta',
+    'allauth.socialaccount.providers.feishu',
+    "allauth.socialaccount.providers.atlassian",
 ]
 
 MIDDLEWARE = [
@@ -50,6 +181,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'netdevflow_project.urls'
@@ -130,5 +262,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+LOGIN_URL = 'account_login'
 LOGIN_REDIRECT_URL = 'dashboard'
-LOGOUT_REDIRECT_URL = 'login'
+LOGOUT_REDIRECT_URL = 'account_login'
+SITE_ID = 1

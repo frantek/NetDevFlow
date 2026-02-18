@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% load socialaccount %}
+
+{% block title %}Sign Up | NetDevFlow{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center" style="min-height: 75vh;">
+    <div class="col-md-6 col-lg-5 col-xl-4">
+        <div class="text-center mb-4">
+            <h1 class="fw-bold text-primary">NetDevFlow</h1>
+            <p class="theme-text-muted">Infrastructure Control Registration</p>
+        </div>
+
+        <div class="card border-0 shadow-md bg-card">
+            <div class="card-body p-4 p-lg-5">
+                <h4 class="fw-bold theme-text-main mb-3">Create an Account</h4>
+                <p class="small theme-text-muted mb-4">
+                    Join the technical team. Note: Your account will require manual authorization from an <strong>Infrastructure Manager</strong> before you can access system data.
+                </p>
+
+                <form class="signup" id="signup_form" method="post" action="{% url 'account_signup' %}">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger small border-0 shadow-sm">
+                            {{ form.non_field_errors.as_text }}
+                        </div>
+                    {% endif %}
+
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label small text-uppercase fw-bold theme-text-muted">
+                            {{ field.label }}
+                        </label>
+                        {{ field }}
+                        {% if field.help_text %}
+                            <div class="form-text small opacity-75">{{ field.help_text|safe }}</div>
+                        {% endif %}
+                        {% if field.errors %}
+                            <div class="text-danger tiny mt-1 fw-bold">{{ field.errors.as_text }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg shadow-sm fw-bold">
+                            Register Account
+                        </button>
+                    </div>
+                </form>
+
+                <!-- AllAuth Social Providers Integration -->
+                {% get_providers as socialaccount_providers %}
+                {% if socialaccount_providers %}
+                    <div class="position-relative my-4">
+                        <hr class="theme-border">
+                        <span class="position-absolute top-50 start-50 translate-middle px-3 bg-card theme-text-muted small">Or join with</span>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        {% for provider in socialaccount_providers %}
+                            <a title="{{ provider.name }}" 
+                               class="btn btn-outline-secondary d-flex align-items-center justify-content-center gap-2 py-2" 
+                               href="{% provider_login_url provider.id process='connect' %}">
+                                {% if provider.id == 'github' %}
+                                    <i class="fab fa-github"></i>
+                                {% elif provider.id == 'google' %}
+                                    <i class="fab fa-google"></i>
+                                {% else %}
+                                    <i class="fas fa-sign-in-alt"></i>
+                                {% endif %}
+                                {{ provider.name }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="mt-4 pt-3 border-top theme-border text-center">
+                    <p class="small theme-text-muted mb-0">
+                        Already have an account? 
+                        <a href="{% url 'account_login' %}" class="text-primary fw-bold text-decoration-none">Sign In</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 text-center">
+            <a href="{% url 'dashboard' %}" class="text-decoration-none small theme-text-muted">
+                <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Ensure the AllAuth form widgets inherit our HQ styles */
+    .signup input[type="text"], 
+    .signup input[type="password"], 
+    .signup input[type="email"],
+    .signup input[type="number"] {
+        display: block;
+        width: 100%;
+        padding: 0.6rem 1rem;
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.5;
+        color: var(--text-main);
+        background-color: var(--bg-card);
+        background-clip: padding-box;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+    }
+
+    .signup input:focus {
+        border-color: var(--accent-primary);
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+    }
+
+    .tiny { font-size: 0.75rem; }
+    .theme-border { border-color: var(--border-color) !important; }
+</style>
+{% endblock %}
