@@ -33,21 +33,46 @@ from .models import (
 )
 
 
+# --- Security & Role-Based Access Mixins (LO3) ---
+
 class VerificationRequiredMixin(UserPassesTestMixin):
     """
-    Ensures that any user with a 'PENDING' role cannot access the view logic.
-    Even if they bypass the template CSS/HTML, the server will reject the
-    request.
+    LO3.1: Ensures that any user with a 'PENDING' role cannot access internal data.
+    If the test fails, we render the dashboard which handles the "Access Restricted"
+    overlay via template logic.
     """
-    def test_func(self):
-        return self.request.user.is_authenticated and \
-          self.request.user.profile.role != 'PENDING'
+    raise_exception = True
 
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.profile.role != 'PENDING'
+    
     def handle_no_permission(self):
-        if self.request.user.is_authenticated:
-            # If logged in but pending, the base.html will show the notice
+        if self.request.user.is_authenticated and self.request.user.profile.role == 'PENDING':
+            # For pending users, we allow them to see the dashboard's restricted view
             return render(self.request, 'inventory/dashboard.html')
         return super().handle_no_permission()
+
+class TechRequiredMixin(UserPassesTestMixin):
+    """Only Technicians and Managers can modify assets."""
+    raise_exception = True
+
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.profile.role in ['TECHNICIAN', 'MANAGER']
+
+    def handle_no_permission(self):
+        # Render the custom 403 template with the correct 403 status code for the test runner
+        return render(self.request, '403.html', status=403)
+
+class ManagerRequiredMixin(UserPassesTestMixin):
+    """Only Managers can perform destructive actions like deletion."""
+    raise_exception = True
+
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.profile.role == 'MANAGER'
+
+    def handle_no_permission(self):
+        # Render the custom 403 template with the correct 403 status code
+        return render(self.request, '403.html', status=403)
 
 # --- Dashboard View ---
 
@@ -174,65 +199,6 @@ def update_ticket_status(request, pk):
         {'status': 'error', 'message': 'Method not allowed'}, status=405
     )
 
-
-# --- Role-Based Access Mixins (LO3) ---
-
-
-class ManagerRequiredMixin(UserPassesTestMixin):
-    """Restricts access to 'MANAGER' role.
-
-    Defensive against missing profiles.
-    """
-
-    def test_func(self):
-        try:
-            return (
-                self.request.user.is_authenticated
-                and self.request.user.profile.role == 'MANAGER'
-            )
-        except (ObjectDoesNotExist, AttributeError):
-            return False
-
-
-class TechOrManagerRequiredMixin(UserPassesTestMixin):
-    """Restricts access to Technicians/Managers.
-
-    Defensive against missing profiles.
-    """
-
-    def test_func(self):
-        try:
-            return (
-                self.request.user.is_authenticated
-                and self.request.user.profile.role in ['TECHNICIAN', 'MANAGER']
-            )
-        except (ObjectDoesNotExist, AttributeError):
-            return False
-
-
-class StaffRequiredMixin(UserPassesTestMixin):
-    """Restricts access to Technicians and Managers (staff members)."""
-
-    def test_func(self):
-        try:
-            return (
-                self.request.user.is_authenticated
-                and self.request.user.profile.role in ['TECHNICIAN', 'MANAGER']
-            )
-        except (ObjectDoesNotExist, AttributeError):
-            return False
-
-
-class TechRequiredMixin(UserPassesTestMixin):
-    """Restricts access to Technicians and Managers."""
-
-    def test_func(self):
-        try:
-            return self.request.user.profile.role in ['TECHNICIAN', 'MANAGER']
-        except (ObjectDoesNotExist, AttributeError):
-            return False
-
-
 # --- Device CRUD (LO2) ---
 
 
@@ -251,10 +217,7 @@ class DeviceDetailView(LoginRequiredMixin, VerificationRequiredMixin,
     template_name = 'inventory/device_detail.html'
 
 
-class DeviceCreateView(
-    LoginRequiredMixin, VerificationRequiredMixin, TechOrManagerRequiredMixin,
-    CreateView
-):
+class DeviceCreateView(TechRequiredMixin, VerificationRequiredMixin, LoginRequiredMixin, CreateView):
 
     model = Device
     template_name = 'inventory/device_form.html'
@@ -278,10 +241,7 @@ class DeviceCreateView(
         return super().form_valid(form)
 
 
-class DeviceUpdateView(
-    LoginRequiredMixin, VerificationRequiredMixin, TechOrManagerRequiredMixin,
-    UpdateView
-):
+class DeviceUpdateView(TechRequiredMixin, VerificationRequiredMixin, LoginRequiredMixin, UpdateView):
     """Allows updating physical placement or hardware specs (LO2)."""
 
     model = Device
@@ -308,8 +268,7 @@ class DeviceUpdateView(
         return super().form_valid(form)
 
 
-class DeviceDeleteView(LoginRequiredMixin, VerificationRequiredMixin,
-                       ManagerRequiredMixin, DeleteView):
+class DeviceDeleteView(ManagerRequiredMixin, VerificationRequiredMixin, LoginRequiredMixin, DeleteView):
     """Restricted to Managers to prevent accidental data loss (LO3)."""
 
     model = Device
@@ -340,8 +299,7 @@ class DataCenterListView(LoginRequiredMixin, VerificationRequiredMixin,
         )
 
 
-class DataCenterCreateView(LoginRequiredMixin, VerificationRequiredMixin,
-                           StaffRequiredMixin, CreateView):
+class DataCenterCreateView(TechRequiredMixin, VerificationRequiredMixin, LoginRequiredMixin, CreateView):
     model = DataCenter
     template_name = 'inventory/datacenter_form.html'
     fields = ['name', 'physical_address', 'contact_info']
@@ -354,18 +312,15 @@ class DataCenterCreateView(LoginRequiredMixin, VerificationRequiredMixin,
         return super().form_valid(form)
 
 
-class DataCenterUpdateView(LoginRequiredMixin, VerificationRequiredMixin,
-                           StaffRequiredMixin, UpdateView):
+class DataCenterUpdateView(TechRequiredMixin, VerificationRequiredMixin,
+                           LoginRequiredMixin, UpdateView):
     model = DataCenter
     template_name = 'inventory/datacenter_form.html'
     fields = ['name', 'physical_address', 'contact_info']
     success_url = reverse_lazy('datacenter_list')
 
 
-class DataCenterDeleteView(
-    LoginRequiredMixin, VerificationRequiredMixin, ManagerRequiredMixin,
-    DeleteView
-):
+class DataCenterDeleteView(ManagerRequiredMixin, VerificationRequiredMixin, LoginRequiredMixin, DeleteView):
     model = DataCenter
     template_name = 'inventory/datacenter_confirm_delete.html'
     success_url = reverse_lazy('datacenter_list')
@@ -392,10 +347,7 @@ class RackListView(LoginRequiredMixin, VerificationRequiredMixin, ListView):
     )
 
 
-class RackCreateView(
-    LoginRequiredMixin, VerificationRequiredMixin, TechOrManagerRequiredMixin,
-    CreateView
-):
+class RackCreateView(TechRequiredMixin, VerificationRequiredMixin, LoginRequiredMixin, CreateView):
     """Provision a new rack within a Data Center Row."""
 
     model = Rack
@@ -411,10 +363,7 @@ class RackCreateView(
         return super().form_valid(form)
 
 
-class RackUpdateView(
-    LoginRequiredMixin, VerificationRequiredMixin, TechOrManagerRequiredMixin,
-    UpdateView
-):
+class RackUpdateView(TechRequiredMixin, VerificationRequiredMixin, LoginRequiredMixin, UpdateView):
     """Update rack specifications or physical row assignment."""
 
     model = Rack
@@ -429,8 +378,7 @@ class RackUpdateView(
         return super().form_valid(form)
 
 
-class RackDeleteView(LoginRequiredMixin, VerificationRequiredMixin,
-                     ManagerRequiredMixin, DeleteView):
+class RackDeleteView(ManagerRequiredMixin, VerificationRequiredMixin, LoginRequiredMixin, DeleteView):
     """Decommission a rack. Restricted to Managers."""
 
     model = Rack
@@ -459,10 +407,7 @@ class RowListView(LoginRequiredMixin, VerificationRequiredMixin, ListView):
     )
 
 
-class RowCreateView(
-    LoginRequiredMixin, VerificationRequiredMixin, TechOrManagerRequiredMixin,
-    CreateView
-):
+class RowCreateView(TechRequiredMixin, VerificationRequiredMixin, LoginRequiredMixin, CreateView):
     model = Row
     template_name = 'inventory/row_form.html'
     fields = ['name', 'data_center']
@@ -475,18 +420,14 @@ class RowCreateView(
         return super().form_valid(form)
 
 
-class RowUpdateView(
-    LoginRequiredMixin, VerificationRequiredMixin, TechOrManagerRequiredMixin,
-    UpdateView
-):
+class RowUpdateView(TechRequiredMixin, VerificationRequiredMixin, LoginRequiredMixin, UpdateView):
     model = Row
     template_name = 'inventory/row_form.html'
     fields = ['name', 'data_center']
     success_url = reverse_lazy('row_list')
 
 
-class RowDeleteView(LoginRequiredMixin, VerificationRequiredMixin,
-                    ManagerRequiredMixin, DeleteView):
+class RowDeleteView(ManagerRequiredMixin, VerificationRequiredMixin, LoginRequiredMixin, DeleteView):
     model = Row
     template_name = 'inventory/row_confirm_delete.html'
     success_url = reverse_lazy('row_list')
@@ -495,9 +436,7 @@ class RowDeleteView(LoginRequiredMixin, VerificationRequiredMixin,
 # --- Ticket CRUD (LO2) ---
 
 
-class TicketCreateView(
-    LoginRequiredMixin, TechOrManagerRequiredMixin, CreateView
-):
+class TicketCreateView(TechRequiredMixin, VerificationRequiredMixin, LoginRequiredMixin, CreateView):
     model = MaintenanceTicket
     fields = ['title', 'description', 'severity', 'device', 'assigned_to']
     success_url = reverse_lazy('kanban_board')
@@ -518,10 +457,7 @@ class TicketCreateView(
         return super().form_valid(form)
 
 
-class TicketUpdateView(
-    LoginRequiredMixin, VerificationRequiredMixin, TechOrManagerRequiredMixin,
-    UpdateView
-):
+class TicketUpdateView(TechRequiredMixin, VerificationRequiredMixin, LoginRequiredMixin, UpdateView):
     """
     Enhanced View to handle GitHub-style threading.
     Updates the Ticket metadata and creates a new TicketUpdate sub-post.
@@ -556,6 +492,18 @@ class TicketUpdateView(
         return response
 
 
+class UpdateTicketStatusView(TechRequiredMixin, VerificationRequiredMixin, LoginRequiredMixin, View):
+    """AJAX endpoint for Kanban drag-and-drop status updates."""
+    def post(self, request, pk):
+        ticket = get_object_or_404(MaintenanceTicket, pk=pk)
+        data = json.loads(request.body)
+        new_status = data.get('status')
+        if new_status in dict(MaintenanceTicket.STATUS_CHOICES):
+            ticket.status = new_status
+            ticket.save()
+            return JsonResponse({'status': 'success'})
+        return JsonResponse({'status': 'error'}, status=400)
+
 # --- IPAM Logic (NEW: LO2 & LO7) ---
 # --- IP Address Management (IPAM) ---
 
@@ -568,8 +516,7 @@ class IPAddressListView(LoginRequiredMixin, VerificationRequiredMixin,
     queryset = IPAddress.objects.select_related('vrf', 'device').all()
 
 
-class IPAddressCreateView(LoginRequiredMixin, VerificationRequiredMixin,
-                          TechRequiredMixin, CreateView):
+class IPAddressCreateView(TechRequiredMixin, VerificationRequiredMixin, LoginRequiredMixin, CreateView):
     model = IPAddress
     form_class = IPAddressForm
     template_name = 'inventory/ip_form.html'
@@ -599,8 +546,7 @@ class IPAddressCreateView(LoginRequiredMixin, VerificationRequiredMixin,
         return super().form_valid(form)
 
 
-class IPAddressUpdateView(LoginRequiredMixin, VerificationRequiredMixin,
-                          TechRequiredMixin, UpdateView):
+class IPAddressUpdateView(TechRequiredMixin, VerificationRequiredMixin, LoginRequiredMixin, UpdateView):
     model = IPAddress
     form_class = IPAddressForm
     template_name = 'inventory/ip_form.html'
@@ -622,10 +568,7 @@ class IPAddressUpdateView(LoginRequiredMixin, VerificationRequiredMixin,
         return super().form_valid(form)
 
 
-class IPAddressDeleteView(
-    LoginRequiredMixin, VerificationRequiredMixin, ManagerRequiredMixin,
-    DeleteView
-):
+class IPAddressDeleteView(ManagerRequiredMixin, VerificationRequiredMixin, LoginRequiredMixin, DeleteView):
     model = IPAddress
     template_name = 'inventory/ip_confirm_delete.html'
     success_url = reverse_lazy('ip_list')
@@ -690,24 +633,21 @@ class VLANListView(LoginRequiredMixin, VerificationRequiredMixin, ListView):
     queryset = VLAN.objects.select_related('data_center').all()
 
 
-class VLANCreateView(LoginRequiredMixin, VerificationRequiredMixin,
-                     TechRequiredMixin, CreateView):
+class VLANCreateView(TechRequiredMixin, VerificationRequiredMixin, LoginRequiredMixin, CreateView):
     model = VLAN
     form_class = VLANForm
     template_name = 'inventory/vlan_form.html'
     success_url = reverse_lazy('vlan_list')
 
 
-class VLANUpdateView(LoginRequiredMixin, VerificationRequiredMixin,
-                     TechRequiredMixin, UpdateView):
+class VLANUpdateView(TechRequiredMixin, VerificationRequiredMixin, LoginRequiredMixin, UpdateView):
     model = VLAN
     form_class = VLANForm
     template_name = 'inventory/vlan_form.html'
     success_url = reverse_lazy('vlan_list')
 
 
-class VLANDeleteView(LoginRequiredMixin, VerificationRequiredMixin,
-                     ManagerRequiredMixin, DeleteView):
+class VLANDeleteView(ManagerRequiredMixin, VerificationRequiredMixin, LoginRequiredMixin, DeleteView):
     model = VLAN
     template_name = 'inventory/vlan_confirm_delete.html'
     success_url = reverse_lazy('vlan_list')
@@ -722,24 +662,23 @@ class VRFListView(LoginRequiredMixin, VerificationRequiredMixin, ListView):
     context_object_name = 'vrfs'
 
 
-class VRFCreateView(LoginRequiredMixin, VerificationRequiredMixin,
-                    TechRequiredMixin, CreateView):
+class VRFCreateView(TechRequiredMixin, VerificationRequiredMixin, LoginRequiredMixin, CreateView):
     model = VRF
     form_class = VRFForm
     template_name = 'inventory/vrf_form.html'
     success_url = reverse_lazy('vrf_list')
 
 
-class VRFUpdateView(LoginRequiredMixin, VerificationRequiredMixin,
-                    TechRequiredMixin, UpdateView):
+class VRFUpdateView(TechRequiredMixin, VerificationRequiredMixin,
+                    LoginRequiredMixin, UpdateView):
     model = VRF
     form_class = VRFForm
     template_name = 'inventory/vrf_form.html'
     success_url = reverse_lazy('vrf_list')
 
 
-class VRFDeleteView(LoginRequiredMixin, VerificationRequiredMixin,
-                    ManagerRequiredMixin, DeleteView):
+class VRFDeleteView(ManagerRequiredMixin, VerificationRequiredMixin,
+                    LoginRequiredMixin, DeleteView):
     model = VRF
     template_name = 'inventory/vrf_confirm_delete.html'
     success_url = reverse_lazy('vrf_list')
@@ -755,8 +694,7 @@ class PrefixListView(LoginRequiredMixin, VerificationRequiredMixin, ListView):
     queryset = Prefix.objects.select_related('vrf', 'vlan', 'site').all()
 
 
-class PrefixCreateView(LoginRequiredMixin, VerificationRequiredMixin,
-                       TechRequiredMixin, CreateView):
+class PrefixCreateView(TechRequiredMixin, VerificationRequiredMixin, LoginRequiredMixin, CreateView):
     model = Prefix
     form_class = PrefixForm
     template_name = 'inventory/prefix_form.html'
@@ -770,8 +708,7 @@ class PrefixCreateView(LoginRequiredMixin, VerificationRequiredMixin,
         return super().form_valid(form)
 
 
-class PrefixUpdateView(LoginRequiredMixin, VerificationRequiredMixin,
-                       TechRequiredMixin, UpdateView):
+class PrefixUpdateView(TechRequiredMixin, VerificationRequiredMixin, LoginRequiredMixin, UpdateView):
     """View used by the 'prefix_update' URL pattern."""
 
     model = Prefix
@@ -786,8 +723,7 @@ class PrefixUpdateView(LoginRequiredMixin, VerificationRequiredMixin,
         return super().form_valid(form)
 
 
-class PrefixDeleteView(LoginRequiredMixin, VerificationRequiredMixin,
-                       ManagerRequiredMixin, DeleteView):
+class PrefixDeleteView(ManagerRequiredMixin, VerificationRequiredMixin, LoginRequiredMixin, DeleteView):
     model = Prefix
     template_name = 'inventory/prefix_confirm_delete.html'
     success_url = reverse_lazy('prefix_list')
