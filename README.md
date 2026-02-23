@@ -2,7 +2,7 @@
 
 NetDevFlow is an AI-augmented infrastructure management tool (DCIM/IPAM) designed specifically for IT operations teams to document complex network assets and track maintenance incidents within a single, unified interface. It bridges the critical gap between hardware inventory and daily task management, ensuring that technical debt and physical maintenance are tracked alongside the assets they affect.
 
-**Live Link:** \[Your Heroku URL Here\]
+**Live Link:** \[[Your Heroku URL Here](https://netdevflow-35c012406b63.herokuapp.com/)\]
 
 ## **1\. Project Purpose**
 
@@ -33,19 +33,21 @@ The UI follows a "Mobile-First" philosophy, specifically designed for technician
 ### **4.1 Dashboard Layout**
 ```
 \+-----------------------------------------------------------------------+  
-| \[NetDevFlow Logo\]          Dashboard   Inventory   Tickets   \[User V\] |  
+| \[NetDevFlow Logo\]          Dashboard   Inventory   IPAM   \[User V\]    |  
 \+-----------------------------------------------------------------------+  
 |                                                                       |  
-|  Welcome back, Admin\!                          \[+ Device\]  \[+ Ticket\] |  
+|  COMMAND CENTER                                      \[+ Device\]       |  
 |                                                                       |  
+|  STATUS: \[ ONLINE: 42 \] \[ CRITICAL: 05 \] \[ SITES: 03 \]                |  
+|                                                                       |  
+|  NETWORK SEGMENTS (IPAM)                                              |  
 |  \+-------------------+   \+-------------------+   \+-------------------+|  
-|  | ONLINE DEVICES    |   | CRITICAL TICKETS  |   | AVAILABLE IPS     ||  
-|  |       42          |   |        05 (Alert) |   |       112         ||  
-|  | \[||||||||||     \] |   | \[\!\!           \]   |   | \[||||||       \]   ||  
+|  | VRF INSTANCES     |   | MANAGED VLANS     |   | IP ALLOCATIONS    ||  
+|  |       12          |   |        85         |   |       1,024       ||  
 |  \+-------------------+   \+-------------------+   \+-------------------+|  
 |                                                                       |  
-|  SYSTEM LOG: Switch-04 status changed to "Maintenance" (10m ago)      |  
-\+-----------------------------------------------------------------------+
+|  RECENT ACTIVITY                                     \[View Kanban\]    |  
+|  \#1092 | SW-CORE-01 | CRITICAL | \[Progress\] | 2m ago                  |  
 ```
 ### **4.2 Device Inventory List**
 ```
@@ -102,7 +104,64 @@ The UI follows a "Mobile-First" philosophy, specifically designed for technician
 |                  \[ CANCEL \]             \[ CREATE TICKET \]             |  
 \+-----------------------------------------------------------------------+
 ```
-### **4.5 Mobile View (Technician Interface)**
+### **4.5 Ticket Update Lifecycle (GitHub-Style Thread)**
+
+Maintenance tickets use a chronological thread model, allowing technicians to post Markdown-enabled updates and track status changes over time.
+```
+\+-----------------------------------------------------------------------+  
+| TICKET: Fan Failure in Core Switch \#1092              \[CLOSE TICKET\]  |  
+\+-----------------------------------------------------------------------+  
+| \[OPEN\] tech\_admin opened this ticket 2 hours ago                      |  
+|                                                                       |  
+| \+-------------------------------------------------------------------+ |  
+| | tech\_admin (Original Post)                                        | |  
+| | "Fans in RU 40 are spinning at 0 RPM. Overheating hazard."        | |  
+| \+-------------------------------------------------------------------+ |  
+|             |                                                         |  
+| \+-----------v-------------------------------------------------------+ |  
+| | sys\_boss (Update)                                                 | |  
+| | "Dispatching field tech with replacement chassis fan."            | |  
+| \+-------------------------------------------------------------------+ |  
+|                                                                       |  
+| \[ POST AN UPDATE: (Markdown Enabled Text Area)        \] \[SAVE UPDATE\] |  
+\+-----------------------------------------------------------------------+
+```
+### **4.6 Automated IP Allocation Form**
+
+The IP allocation form uses a dynamic lookup system. Selecting a prefix triggers an API call that returns only available host addresses, preventing duplicate assignments.
+```
+\+-----------------------------------------------------------------------+  
+| ALLOCATE NEW IP ADDRESS                                               |  
+\+-----------------------------------------------------------------------+  
+|                                                                       |  
+| 1\. SELECT PREFIX RANGE: \[ 10.0.10.0/24 (Server-Net)              V \]  |  
+|                                                                       |  
+| 2\. AVAILABLE ADDRESS:   \[ 10.0.10.51 (Next Free)                 V \]  |  
+|                         | \* 10.0.10.51                                |  
+|                         | \* 10.0.10.52                                |  
+|                         | \* 10.0.10.53                                |  
+|                                                                       |  
+| 3\. ASSIGN TO DEVICE:    \[ SRV-PROD-01                            V \]  |  
+|                                                                       |  
+| \[x\] Mark as Primary Management IP                                     |  
+|                                                                       |  
+|                                                  \[CONFIRM ALLOCATION\] |  
+```
+### **4.3 IPAM: VLAN & Prefix Management**
+
+Tabular interfaces for managing logical network segments with site-specific scoping.
+```
+\+-----------------------------------------------------------------------+  
+| VLAN MANAGEMENT                                            \[+ Add VLAN\] |  
+\+-----------------------------------------------------------------------+  
+|  VID   | NAME             | SITE             | STATUS     | ACTIONS   |  
+|--------|------------------|------------------|------------|-----------|  
+| \[ 10 \] | Server-Net       | DC-Alpha         | \[Active\]   | \[E\] \[D\]   |  
+| \[ 20 \] | IoT-Sensors      | DC-Bravo         | \[Reserved\] | \[E\] \[D\]   |  
+| \[ 30 \] | Guest-WiFi       | Global           | \[Active\]   | \[E\] \[D\]   |  
+\+-----------------------------------------------------------------------+
+```
+### **4.8 Mobile View (Technician Interface)**
 ```
 \+-----------------------+  
 | \[=\]   NetDevFlow  \[U\] |  
@@ -127,53 +186,76 @@ The database architecture is designed to enforce referential integrity and suppo
 
 ### **5.1 Entity Relationship Diagram (ERD)**
 
-erDiagram  
-    USER ||--|| PROFILE : "has"  
-    USER ||--o{ TICKET : "creates/assigned"  
-    DEVICE ||--o{ IPADDRESS : "assigned\_to"  
+erDiagram
+    USER ||--|| PROFILE : "has"
+    USER ||--o{ TICKET : "assigned_to"
+    DATACENTER ||--o{ ROW : "contains"
+    ROW ||--o{ RACK : "contains"
+    RACK ||--o{ DEVICE : "houses"
+    VRF ||--o{ PREFIX : "contains"
+    VLAN ||--o{ PREFIX : "assigned_to"
+    DATACENTER ||--o{ VLAN : "scoped_to"
+    PREFIX ||--o{ IPADDRESS : "defines"
+    DEVICE ||--o{ IPADDRESS : "assigns"
     DEVICE ||--o{ TICKET : "logs"
 
-    USER {  
-        string username  
-        string password  
-        string email  
+    DATACENTER {
+        string name
+        string physical_address
+        string contact_info
+    }
+    ROW {
+        string name
+    }
+    RACK {
+        string name
+        int ru_capacity
+    }
+    VLAN {
+        int vid
+        string name
+        string status
+    }
+    VRF {
+        string name
+        string rd
+    }
+    PREFIX {
+        string prefix
+        string status
+    }
+    DEVICE {
+        string hostname
+        string model_name
+        int position
+        int size
+        string status
+    }
+    IPADDRESS {
+        string address
+        string subnet_mask
+        boolean is_primary
+    }
+    TICKET {
+        string title
+        string severity
+        string status
     }
 
-    PROFILE {  
-        string role "Manager, Tech, ReadOnly"  
-    }
-
-    DEVICE {  
-        string hostname "PK, Unique"  
-        string model\_name  
-        string device\_type  
-        string status "Online, Offline, Maint"  
-        string location  
-        datetime created\_at  
-    }
-
-    IPADDRESS {  
-        string address "Unique"  
-        string subnet\_mask  
-        boolean is\_primary  
-    }
-
-    TICKET {  
-        string title  
-        text description  
-        string severity "Low, Warning, Critical"  
-        string status "Open, Progress, Resolved"  
-        datetime created\_at  
-    }
 
 ### **5.2 Schema Details**
 
-| Model | Fields | Relationship | Technical Justification |
-| :---- | :---- | :---- | :---- |
-| **User** | username, role, is\_staff | \- | Extends Django Auth to support Granular Role-Based Access Control (RBAC). |
-| **Device** | hostname, model, type, status, location | \- | The central node of the schema; acts as the primary parent for all metadata. |
-| **IPAddress** | address, subnet, device, is\_active | ForeignKey(Device) | Uses a One-to-Many relationship, allowing one device (like a multi-homed server) to hold multiple IP interfaces. |
-| **Ticket** | title, severity, status, description, device | ForeignKey(Device) | Establishes a permanent audit trail for hardware; tickets cannot be deleted without record, satisfying compliance needs. |
+| Model | LO | Technical Justification |
+| :---- | :---- | :---- |
+| **Profile** | LO3 | Extends User to handle 'PENDING' lock state and RBAC roles. |
+| **DataCenter** | LO7 | Root site object; scopes physical infrastructure and VLAN broadcast domains. |
+| **Row / Rack** | LO7 | Multi-level physical hierarchy ensuring hardware is locatable within a specific 42U rack. |
+| **VRF** | LO7 | Virtual Routing & Forwarding instance; allows for overlapping IP space and multi-tenancy. |
+| **VLAN** | LO7 | Layer 2 segmentation; scoped to DataCenters to prevent global broadcast leak. |
+| **Prefix** | LO7 | Logic subnet container (e.g. 10.0.0.0/24); child of VRF and linked to VLANs. |
+| **Device** | LO2 | The central asset; includes physical RU positioning and maintenance status. |
+| **IPAddress** | LO2 | Validated host addresses; allocated from Prefixes and assigned to Devices. |
+| **MaintenanceTicket** | LO2 | Linked to Devices; supports Markdown and Kanban status updates. |
 
 ## **6\. AI Reflection (LO8)**
 
