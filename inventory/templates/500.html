@@ -3,101 +3,295 @@
 {% block title %}Bummer! Server's Toast | NetDevFlow{% endblock %}
 
 {% block content %}
-
-<div class="row justify-content-center align-items-center" style="min-height: 75vh;">
-<div class="col-md-8 col-lg-6 text-center">
-<!-- Visual Indicator with Animation -->
-<div class="mb-4">
-<i class="fas fa-server fa-6x theme-text-muted opacity-50 animate-pulse"></i>
-</div>
-
-    <!-- Primary Error Header -->
-    <h1 class="display-4 fw-bold theme-text-main">Oops! Everything's Broken.</h1>
-    
-    <!-- Expanded Explanation -->
-    <p class="lead theme-text-muted mb-4">
-        Yo, the server just straight up gave up. It hit a massive snag it didn't know how to handle—maybe the DB timed out, things got way too crowded, or it just had a total brain fart lol. 
-    </p>
-
-    <!-- Automated Notification Context -->
-    <div class="p-3 mb-4 rounded theme-bg-surface border theme-border text-start">
-        <h6 class="fw-bold theme-text-main"><i class="fas fa-satellite-dish me-2 text-primary"></i>So, what now?</h6>
-        <p class="small theme-text-muted mb-0">
-            Don't sweat it! You don't gotta report this or anything. Our bots already caught the mess and logged all the receipts. The tech crew got buzzed on their pagers and are probably already diving in to fix the vibe and get things back on track.
-        </p>
-    </div>
-
-    <!-- Troubleshooting & Guidance -->
-    <div class="row text-start mb-4 g-3">
-        <div class="col-sm-6">
-            <div class="small fw-bold text-uppercase theme-text-muted mb-2">Stuff you can try:</div>
-            <ul class="small theme-text-muted ps-3">
-                <li>Give it a hard refresh (Ctrl + F5).</li>
-                <li>Chill for 60 secs and try again.</li>
-                <li>Peep the status page for outages.</li>
-            </ul>
+<div class="row justify-content-center align-items-center" style="min-height: 75vh;" id="error-container">
+    <div class="col-md-8 col-lg-6 text-center" id="message-view">
+        <!-- Visual Indicator with Animation (Click 5 times for Easter Egg) -->
+        <div class="mb-4">
+            <i class="fas fa-server fa-6x theme-text-muted opacity-50 animate-pulse cursor-pointer" id="easter-egg-trigger" title="Click me if you're bored..."></i>
         </div>
-        <div class="col-sm-6">
-            <div class="small fw-bold text-uppercase theme-text-muted mb-2">The Nerdy Bits:</div>
-            <div class="alert alert-warning border-0 shadow-sm d-inline-block w-100 mb-0 theme-alert-warning">
-                <i class="fas fa-tools me-2"></i>
-                <strong class="small">HTTP Oof:</strong> <span class="small">500 Server Meltdown</span>
+
+        <!-- Primary Error Header -->
+        <h1 class="display-4 fw-bold theme-text-main">Oops! Everything's Broken.</h1>
+        
+        <!-- Expanded Explanation -->
+        <p class="lead theme-text-muted mb-4">
+            Yo, the server just straight up gave up. It hit a massive snag it didn't know how to handle—maybe the DB timed out, things got way too crowded, or it just had a total brain fart lol. 
+        </p>
+
+        <!-- Automated Notification Context -->
+        <div class="p-3 mb-4 rounded theme-bg-surface border theme-border text-start">
+            <h6 class="fw-bold theme-text-main"><i class="fas fa-satellite-dish me-2 text-primary"></i>So, what now?</h6>
+            <p class="small theme-text-muted mb-0">
+                Don't sweat it! You don't gotta report this or anything. Our bots already caught the mess and logged all the receipts. The tech crew got buzzed on their pagers and are probably already diving in to fix the vibe and get things back on track.
+            </p>
+        </div>
+
+        <!-- Troubleshooting & Guidance -->
+        <div class="row text-start mb-4 g-3">
+            <div class="col-sm-6">
+                <div class="small fw-bold text-uppercase theme-text-muted mb-2">Stuff you can try:</div>
+                <ul class="small theme-text-muted ps-3">
+                    <li>Give it a hard refresh (Ctrl + F5).</li>
+                    <li>Chill for 60 secs and try again.</li>
+                    <li>Peep the status page for outages.</li>
+                </ul>
+            </div>
+            <div class="col-sm-6">
+                <div class="small fw-bold text-uppercase theme-text-muted mb-2">The Nerdy Bits:</div>
+                <div class="alert alert-warning border-0 shadow-sm d-inline-block w-100 mb-0 theme-alert-warning">
+                    <i class="fas fa-tools me-2"></i>
+                    <strong class="small">HTTP Oof:</strong> <span class="small">500 Server Meltdown</span>
+                </div>
             </div>
         </div>
+
+        <!-- Action Buttons -->
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+            <a href="{% url 'dashboard' %}" class="btn btn-primary btn-lg px-5 shadow">
+                <i class="fas fa-redo me-2"></i>Try Again
+            </a>
+            <a href="javascript:history.back()" class="btn btn-outline-secondary btn-lg px-4">
+                <i class="fas fa-arrow-left me-2"></i>Peace Out
+            </a>
+        </div>
+
+        <!-- Footer Audit Note -->
+        <div class="mt-5 pt-3 border-top theme-border">
+            <p class="theme-text-muted tiny">
+                Clock says: {% now "Y-m-d H:i:s" %} UTC | ID thingy: <code class="text-primary">{{ request.id|default:"AUTOGEN-ERR-99" }}</code>
+            </p>
+        </div>
     </div>
 
-    <!-- Action Buttons -->
-    <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
-        <a href="{% url 'dashboard' %}" class="btn btn-primary btn-lg px-5 shadow">
-            <i class="fas fa-redo me-2"></i>Try Again
-        </a>
-        <a href="javascript:history.back()" class="btn btn-outline-secondary btn-lg px-4">
-            <i class="fas fa-arrow-left me-2"></i>Peace Out
-        </a>
+    <!-- Hidden Galaga Game View -->
+    <div class="col-12 text-center d-none" id="game-view">
+        <h3 class="theme-text-main mb-3 fw-bold">Bug Squasher 5000</h3>
+        <p class="theme-text-muted small mb-3">Use Arrows/WASD to move, SPACE to fire. Blast the bugs while we fix the server!</p>
+        <div class="game-wrapper position-relative mx-auto shadow-lg" style="max-width: 600px; height: 400px; background: #000; border-radius: 12px; border: 4px solid var(--accent-primary); overflow: hidden;">
+            <canvas id="galaga-canvas"></canvas>
+            <div id="game-overlay" class="position-absolute top-50 start-50 translate-middle d-none">
+                <h2 class="text-white fw-bold">GAME OVER</h2>
+                <button class="btn btn-primary" onclick="resetGame()">Try Again</button>
+            </div>
+        </div>
+        <div class="mt-4">
+            <button class="btn btn-outline-secondary btn-sm" id="quit-game">Back to Error</button>
+        </div>
     </div>
-
-    <!-- Footer Audit Note -->
-    <div class="mt-5 pt-3 border-top theme-border">
-        <p class="theme-text-muted tiny">
-            Clock says: {% now "Y-m-d H:i:s" %} UTC | ID thingy: <code class="text-primary">{{ request.id|default:"AUTOGEN-ERR-99" }}</code>
-        </p>
-    </div>
-</div>
-
-
 </div>
 
 <style>
-/* Theme Helpers */
-.theme-text-main { color: var(--text-main) !important; }
-.theme-text-muted { color: var(--text-muted) !important; }
-.theme-border { border-color: var(--border-color) !important; }
-.theme-bg-surface {
-background-color: var(--bg-card) !important;
-border: 1px solid var(--border-color) !important;
-}
+    /* Theme Helpers */
+    .theme-text-main { color: var(--text-main) !important; }
+    .theme-text-muted { color: var(--text-muted) !important; }
+    .theme-border { border-color: var(--border-color) !important; }
+    .theme-bg-surface { 
+        background-color: var(--bg-card) !important; 
+        border: 1px solid var(--border-color) !important; 
+    }
 
-/* Warning Alert Theme Sync */
-.theme-alert-warning {
-    color: #856404 !important;
-    background-color: #fff3cd !important;
-}
-[data-theme=&quot;dark&quot;] .theme-alert-warning {
-    background-color: rgba(255, 193, 7, 0.15) !important;
-    color: #ffc107 !important;
-    border: 1px solid rgba(255, 193, 7, 0.2) !important;
-}
+    .cursor-pointer { cursor: pointer; }
 
-/* Technical Fade/Pulse Animation for the Server Icon */
-@keyframes pulse {
-    0% { opacity: 0.5; transform: scale(1); }
-    50% { opacity: 0.2; transform: scale(0.97); }
-    100% { opacity: 0.5; transform: scale(1); }
-}
-.animate-pulse { animation: pulse 3s infinite ease-in-out; }
-.tiny { font-size: 0.75rem; }
+    /* Warning Alert Theme Sync */
+    .theme-alert-warning {
+        color: #856404 !important;
+        background-color: #fff3cd !important;
+    }
+    [data-theme="dark"] .theme-alert-warning {
+        background-color: rgba(255, 193, 7, 0.15) !important;
+        color: #ffc107 !important;
+        border: 1px solid rgba(255, 193, 7, 0.2) !important;
+    }
 
+    /* Technical Fade/Pulse Animation for the Server Icon */
+    @keyframes pulse {
+        0% { opacity: 0.5; transform: scale(1); }
+        50% { opacity: 0.2; transform: scale(0.97); }
+        100% { opacity: 0.5; transform: scale(1); }
+    }
+    .animate-pulse { animation: pulse 3s infinite ease-in-out; }
+    .tiny { font-size: 0.75rem; }
 
+    #galaga-canvas { width: 100%; height: 100%; display: block; }
 </style>
 
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const trigger = document.getElementById('easter-egg-trigger');
+        const quitBtn = document.getElementById('quit-game');
+        const messageView = document.getElementById('message-view');
+        const gameView = document.getElementById('game-view');
+        const canvas = document.getElementById('galaga-canvas');
+        const ctx = canvas.getContext('2d');
+        const overlay = document.getElementById('game-overlay');
+
+        let clickCount = 0;
+        let gameRunning = false;
+        let animationId;
+
+        // Easter Egg Trigger
+        trigger.addEventListener('click', () => {
+            clickCount++;
+            if (clickCount === 5) {
+                startGame();
+            }
+        });
+
+        quitBtn.addEventListener('click', () => {
+            stopGame();
+        });
+
+        // Game Variables
+        let player = { x: 0, y: 0, w: 30, h: 20, speed: 5 };
+        let bullets = [];
+        let enemies = [];
+        let keys = {};
+        let score = 0;
+
+        function startGame() {
+            messageView.classList.add('d-none');
+            gameView.classList.remove('d-none');
+            
+            // Set canvas size
+            canvas.width = 600;
+            canvas.height = 400;
+            
+            player.x = canvas.width / 2 - 15;
+            player.y = canvas.height - 40;
+            bullets = [];
+            enemies = [];
+            score = 0;
+            gameRunning = true;
+            overlay.classList.add('d-none');
+            
+            spawnEnemies();
+            gameLoop();
+        }
+
+        function stopGame() {
+            gameRunning = false;
+            cancelAnimationFrame(animationId);
+            gameView.classList.add('d-none');
+            messageView.classList.remove('d-none');
+            clickCount = 0;
+        }
+
+        window.resetGame = startGame;
+
+        function spawnEnemies() {
+            for(let row = 0; row < 3; row++) {
+                for(let col = 0; col < 8; col++) {
+                    enemies.push({
+                        x: 50 + col * 60,
+                        y: 30 + row * 40,
+                        w: 30,
+                        h: 20,
+                        speed: 1,
+                        dir: 1
+                    });
+                }
+            }
+        }
+
+        window.addEventListener('keydown', e => keys[e.code] = true);
+        window.addEventListener('keyup', e => keys[e.code] = false);
+
+        function update() {
+            if (!gameRunning) return;
+
+            // Player Movement
+            if ((keys['ArrowLeft'] || keys['KeyA']) && player.x > 0) player.x -= player.speed;
+            if ((keys['ArrowRight'] || keys['KeyD']) && player.x < canvas.width - player.w) player.x += player.speed;
+            
+            // Firing
+            if (keys['Space']) {
+                if (bullets.length === 0 || bullets[bullets.length-1].y < player.y - 100) {
+                    bullets.push({ x: player.x + player.w/2 - 2, y: player.y, w: 4, h: 10 });
+                }
+            }
+
+            // Update Bullets
+            bullets.forEach((b, i) => {
+                b.y -= 7;
+                if (b.y < 0) bullets.splice(i, 1);
+            });
+
+            // Update Enemies
+            let sideHit = false;
+            enemies.forEach(e => {
+                e.x += e.speed * e.dir;
+                if (e.x <= 0 || e.x >= canvas.width - e.w) sideHit = true;
+            });
+
+            if (sideHit) {
+                enemies.forEach(e => {
+                    e.dir *= -1;
+                    e.y += 10;
+                    if (e.y >= player.y) {
+                        gameRunning = false;
+                        overlay.classList.remove('d-none');
+                    }
+                });
+            }
+
+            // Collisions
+            bullets.forEach((b, bi) => {
+                enemies.forEach((e, ei) => {
+                    if (b.x < e.x + e.w && b.x + b.w > e.x && b.y < e.y + e.h && b.y + b.h > e.y) {
+                        enemies.splice(ei, 1);
+                        bullets.splice(bi, 1);
+                        score += 10;
+                    }
+                });
+            });
+
+            if (enemies.length === 0) spawnEnemies();
+        }
+
+        function draw() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Stars
+            ctx.fillStyle = '#fff';
+            for(let i=0; i<20; i++) {
+                ctx.fillRect(Math.random()*canvas.width, Math.random()*canvas.height, 1, 1);
+            }
+
+            // Draw Player
+            ctx.fillStyle = '#0d6efd';
+            ctx.beginPath();
+            ctx.moveTo(player.x + player.w/2, player.y);
+            ctx.lineTo(player.x, player.y + player.h);
+            ctx.lineTo(player.x + player.w, player.y + player.h);
+            ctx.fill();
+
+            // Draw Bullets
+            ctx.fillStyle = '#ffc107';
+            bullets.forEach(b => ctx.fillRect(b.x, b.y, b.w, b.h));
+
+            // Draw Enemies (Bugs)
+            ctx.fillStyle = '#dc3545';
+            enemies.forEach(e => {
+                ctx.fillRect(e.x, e.y, e.w, e.h);
+                // Antennas
+                ctx.fillRect(e.x + 5, e.y - 5, 2, 5);
+                ctx.fillRect(e.x + e.w - 7, e.y - 5, 2, 5);
+            });
+
+            // Score
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px Arial';
+            ctx.fillText(`Score: ${score}`, 10, 20);
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            if (gameRunning) {
+                animationId = requestAnimationFrame(gameLoop);
+            }
+        }
+    });
+</script>
 {% endblock %}
