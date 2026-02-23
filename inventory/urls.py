@@ -1,4 +1,6 @@
 from django.urls import path
+from django.conf import settings
+from django.conf.urls.static import static
 
 from . import views
 
@@ -142,4 +144,4 @@ urlpatterns = [
         views.update_ticket_status,
         name='update_ticket_status',
     ),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
