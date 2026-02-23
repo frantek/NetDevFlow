@@ -9,8 +9,8 @@
 <div class="mb-4">
 <i class="fas fa-user-shield fa-6x text-danger opacity-75"></i>
 </div>
-<h1 class="display-4 fw-bold text-dark">Whoops! No Entry.</h1>
-<p class="lead text-muted mb-4">
+<h1 class="display-4 fw-bold theme-text-main">Whoops! No Entry.</h1>
+<p class="lead theme-text-muted mb-4">
 Yo, my bad! But looks like your current rank (<strong>{{ user.profile.role }}</strong>) isn't high enough to get in here. You're just not on the VIP list for this one lol.
 </p>
 <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
@@ -21,12 +21,23 @@ Yo, my bad! But looks like your current rank (<strong>{{ user.profile.role }}</s
 <i class="fas fa-arrow-left me-2"></i>Let's Bail
 </a>
 </div>
-<div class="mt-5 p-3 border rounded bg-light">
-<small class="text-muted">
+<div class="mt-5 p-3 border rounded theme-bg-surface shadow-sm">
+<small class="theme-text-muted">
 <i class="fas fa-info-circle me-1"></i>
 Think this is a total mistake? Hit up a <strong>Big Boss (Infrastructure Manager)</strong> to level up your account stats.
 </small>
 </div>
 </div>
 </div>
+
+<style>
+/* Theme Helpers consistent with Dashboard and Inventory */
+.theme-text-main { color: var(--text-main) !important; }
+.theme-text-muted { color: var(--text-muted) !important; }
+.theme-bg-surface {
+background-color: var(--bg-card) !important;
+border-color: var(--border-color) !important;
+}
+</style>
+
 {% endblock %}

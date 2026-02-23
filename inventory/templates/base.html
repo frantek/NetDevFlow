@@ -336,6 +336,13 @@
                                 <i class="fas fa-user-circle me-1"></i>{{ user.username }}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0">
+                                <!-- Theme Toggle Integrated into User Menu -->
+                                <li>
+                                    <button class="dropdown-item theme-toggle-trigger d-flex align-items-center" type="button">
+                                        <i class="fas fa-adjust me-2 theme-icon-spin"></i>
+                                        <span class="theme-label">Switch Theme</span>
+                                    </button>
+                                </li>
                                 <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="fas fa-cog me-2"></i>Admin HQ</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
@@ -411,20 +418,6 @@
     </footer>
 
     <script>
-        window.addEventListener('DOMContentLoaded', () => {
-            const btn = document.createElement('button');
-            btn.className = 'theme-toggle-btn';
-            btn.innerHTML = document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
-            document.body.appendChild(btn);
-
-            btn.onclick = () => {
-                const current = document.documentElement.getAttribute('data-theme');
-                const next = current === 'dark' ? 'light' : 'dark';
-                document.documentElement.setAttribute('data-theme', next);
-                localStorage.setItem('site-theme', next);
-                btn.innerHTML = next === 'dark' ? '☀️' : '🌙';
-            };
-
             // Easter Egg Logic
             const trigger = document.getElementById('egg-trigger');
             const eggContainer = document.getElementById('easter-egg-container');
@@ -551,24 +544,36 @@
             startBtn.onclick = initGame;
             canvas.onclick = jump;
             window.onkeydown = (e) => { if (e.code === 'Space') jump(); };
-        });
+        //});
     </script>
 
     <script>
         window.addEventListener('DOMContentLoaded', () => {
-            const toggleBtn = document.createElement('button');
-            toggleBtn.className = 'theme-toggle-btn';
-            toggleBtn.setAttribute('title', 'Switch the Vibe');
-            toggleBtn.innerHTML = document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
-            document.body.appendChild(toggleBtn);
+            const updateThemeUI = (theme) => {
+                const labels = document.querySelectorAll('.theme-label');
+                labels.forEach(label => {
+                    label.textContent = theme === 'dark' ? '☀️ Switch to Light Mode' : '🌙 Switch to Dark Mode';
+                });
+            };
 
-            toggleBtn.addEventListener('click', () => {
-                const currentTheme = document.documentElement.getAttribute('data-theme');
-                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-                
-                document.documentElement.setAttribute('data-theme', newTheme);
-                localStorage.setItem('site-theme', newTheme);
-                toggleBtn.innerHTML = newTheme === 'dark' ? '☀️' : '🌙';
+            const toggleTheme = () => {
+                const current = document.documentElement.getAttribute('data-theme');
+                const next = current === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', next);
+                localStorage.setItem('site-theme', next);
+                updateThemeUI(next);
+            };
+
+            // Initial UI state
+            updateThemeUI(document.documentElement.getAttribute('data-theme'));
+
+            // Attach listeners to all triggers (User Menu and Guest Icon)
+            document.querySelectorAll('.theme-toggle-trigger').forEach(trigger => {
+                trigger.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation(); // Prevents dropdown from closing prematurely if needed
+                    toggleTheme();
+                });
             });
         });
     </script>
