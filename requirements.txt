@@ -9,6 +9,7 @@ cryptography==46.0.5
 Django==6.0.2
 django-allauth==65.14.3
 flake8==7.3.0
+gunicorn==25.1.0heroku create
 idna==3.11
 isort==7.0.0
 Jinja2==3.1.6
