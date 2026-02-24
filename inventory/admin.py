@@ -235,10 +235,24 @@ class ProfileInline(admin.StackedInline):
 
 class UserAdmin(BaseUserAdmin):
     inlines = (ProfileInline,)
-    list_display = ('username', 'email', 'get_role', 'is_staff')
+    list_display = ('username', 'email', 'get_role', 'is_staff', 'date_joined')
+    list_filter = ('profile__role', 'is_staff', 'date_joined')
+    search_fields = ('username', 'email', 'profile__role')
 
     def get_role(self, obj):
-        return obj.profile.role
+        role = obj.profile.role
+        role_colors = {
+            'PENDING': '#ff9800',
+            'MANAGER': '#4caf50',
+            'TECHNICIAN': '#2196f3',
+            'READONLY': '#9e9e9e',
+        }
+        return format_html(
+            '<span style="background-color: {}; color: white; padding: 3px 8px; '
+            'border-radius: 3px; font-weight: bold;">{}</span>',
+            role_colors.get(role, '#999'),
+            role,
+        )
 
     get_role.short_description = 'Network Access Role'
 

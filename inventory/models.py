@@ -21,7 +21,7 @@ class Profile(models.Model):
     ]
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     role = models.CharField(
-        max_length=20, choices=ROLE_CHOICES, default='READONLY'
+        max_length=20, choices=ROLE_CHOICES, default='PENDING'
     )
 
     def __str__(self):
@@ -32,14 +32,20 @@ class Profile(models.Model):
 def create_user_profile(sender, instance, created, **kwargs):
     """
     Defensive signal to create profile when a new User is created.
-    Uses get_or_create to prevent IntegrityErrors when using Admin Inlines.
+    New users are set to 'PENDING' role for admin approval.
     """
     if created:
-        Profile.objects.get_or_create(user=instance)
+        Profile.objects.get_or_create(
+            user=instance,
+            defaults={'role': 'PENDING'}
+        )
     else:
         # Ensure profile exists for existing users (e.g., legacy)
         if not hasattr(instance, 'profile'):
-            Profile.objects.get_or_create(user=instance)
+            Profile.objects.get_or_create(
+                user=instance,
+                defaults={'role': 'PENDING'}
+            )
 
 
 # --- DCIM Hierarchy Models (LO7 & Professional Domain) ---
