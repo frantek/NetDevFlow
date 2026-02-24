@@ -1,0 +1,260 @@
+/* NetDevFlow Shared Styles */
+
+/* --- THE THEME ENGINE: DYNAMIC CSS VARIABLES --- */
+:root {
+    --bg-body: #f8f9fa;
+    --bg-card: #ffffff;
+    --bg-nav: #212529;
+    --text-main: #212529;
+    --text-muted: #6c757d;
+    --border-color: #dee2e6;
+    --accent-primary: #0d6efd;
+    --toggle-bg: #212529;
+    --toggle-color: #ffffff;
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+    --table-hover: rgba(0, 0, 0, 0.03);
+    
+    /* Stats Colors Light */
+    --stats-success-bg: rgba(25, 135, 84, 0.05);
+    --stats-danger-bg: rgba(220, 53, 69, 0.05);
+    --stats-info-bg: rgba(13, 202, 240, 0.05);
+    --stats-success-text: #198754;
+    --stats-danger-text: #dc3545;
+    --stats-info-text: #0dcaf0;
+}
+
+[data-theme="dark"] {
+    --bg-body: #121416;
+    --bg-card: #1a1d21;
+    --bg-nav: #000000;
+    --text-main: #e1e1e1;
+    --text-muted: #adb5bd;
+    --border-color: #2d3238;
+    --accent-primary: #3d8bfd;
+    --toggle-bg: #f8f9fa;
+    --toggle-color: #212529;
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.3);
+    --shadow-md: 0 4px 15px rgba(0,0,0,0.5);
+    --table-hover: rgba(255, 255, 255, 0.03);
+
+    /* Stats Colors Dark - Brighter for contrast */
+    --stats-success-bg: rgba(25, 135, 84, 0.15);
+    --stats-danger-bg: rgba(220, 53, 69, 0.15);
+    --stats-info-bg: rgba(13, 202, 240, 0.15);
+    --stats-success-text: #75b798;
+    --stats-danger-text: #ea868f;
+    --stats-info-text: #6edff6;
+}
+
+/* --- GLOBAL RESET & LAYOUT --- */
+body {
+    background-color: var(--bg-body);
+    color: var(--text-main);
+    transition: background-color 0.3s ease, color 0.3s ease;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+main { flex: 1; }
+
+/* --- GLOBAL CARD & COMPONENT STYLING --- */
+.card { 
+    background-color: var(--bg-card); 
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+}
+
+.stats-card {
+    border: none !important;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stats-card.border-success {
+    background-color: var(--stats-success-bg) !important;
+    border-top: 4px solid var(--stats-success-text) !important;
+}
+.stats-card.border-success h2 { color: var(--stats-success-text) !important; }
+
+.stats-card.border-danger {
+    background-color: var(--stats-danger-bg) !important;
+    border-top: 4px solid var(--stats-danger-text) !important;
+}
+.stats-card.border-danger h2 { color: var(--stats-danger-text) !important; }
+
+.stats-card.border-info {
+    background-color: var(--stats-info-bg) !important;
+    border-top: 4px solid var(--stats-info-text) !important;
+}
+.stats-card.border-info h2 { color: var(--stats-info-text) !important; }
+
+.stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+/* --- GLOBAL FORM STYLING --- */
+.form-text, .text-muted, .help-text { 
+    color: var(--text-muted) !important; 
+    font-size: 0.85rem;
+}
+
+[data-theme="dark"] .form-text.opacity-75 {
+    opacity: 0.9 !important;
+    color: var(--text-main) !important;
+}
+
+.form-control, .form-select {
+    background-color: var(--bg-card) !important;
+    color: var(--text-main) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+.form-control:focus, .form-select:focus {
+    background-color: var(--bg-card) !important;
+    color: var(--text-main) !important;
+    border-color: var(--accent-primary) !important;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15) !important;
+}
+
+.form-select option {
+    background-color: var(--bg-card);
+    color: var(--text-main);
+}
+
+/* Dark mode specific option styling */
+[data-theme="dark"] .form-select option {
+    background-color: var(--bg-card);
+    color: var(--text-main);
+}
+
+[data-theme="dark"] select {
+    background-color: var(--bg-card) !important;
+    color: var(--text-main) !important;
+    border-color: var(--border-color) !important;
+}
+
+.form-control:disabled, .form-select:disabled {
+    background-color: var(--bg-body) !important;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Placeholder text colors for dark mode */
+.form-control::placeholder,
+.form-select::placeholder,
+textarea::placeholder,
+input::placeholder {
+    color: var(--text-muted) !important;
+    opacity: 0.7;
+}
+
+[data-theme="dark"] .form-control::placeholder,
+[data-theme="dark"] .form-select::placeholder,
+[data-theme="dark"] textarea::placeholder,
+[data-theme="dark"] input::placeholder {
+    color: var(--text-muted) !important;
+    opacity: 0.8;
+}
+
+/* Ensure all input and textarea elements respect theme */
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="password"],
+textarea,
+select {
+    background-color: var(--bg-card) !important;
+    color: var(--text-main) !important;
+    border-color: var(--border-color) !important;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+textarea:focus,
+select:focus {
+    background-color: var(--bg-card) !important;
+    color: var(--text-main) !important;
+    border-color: var(--accent-primary) !important;
+}
+
+/* --- GLOBAL TABLE THEME OVERRIDES --- */
+.table {
+    color: var(--text-main) !important;
+    background-color: transparent !important;
+}
+
+.table thead th {
+    background-color: var(--bg-body) !important;
+    color: var(--text-muted) !important;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+    border-bottom: 2px solid var(--border-color) !important;
+    border-top: none !important;
+}
+
+.table tr, .table td {
+    background-color: transparent !important;
+    color: inherit !important;
+    border-bottom-color: var(--border-color) !important;
+}
+
+.theme-table-row:hover {
+    background-color: var(--table-hover) !important;
+}
+
+/* Badge Contrast Fixes for Dark Mode */
+[data-theme="dark"] .bg-success-subtle { background-color: rgba(25, 135, 84, 0.15) !important; }
+[data-theme="dark"] .bg-danger-subtle { background-color: rgba(220, 53, 69, 0.15) !important; }
+[data-theme="dark"] .bg-warning-subtle { background-color: rgba(255, 193, 7, 0.15) !important; }
+
+/* --- THEME UTILITY CLASSES --- */
+.theme-text-main { color: var(--text-main) !important; }
+.theme-text-muted { color: var(--text-muted) !important; }
+.theme-text-bold { color: var(--text-main) !important; font-weight: 700; }
+.border-theme { border-color: var(--border-color) !important; }
+
+.footer {
+    background-color: var(--bg-card);
+    border-top: 1px solid var(--border-color);
+    color: var(--text-muted);
+    padding: 2rem 0;
+}
+
+.theme-toggle-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 55px;
+    height: 55px;
+    background: var(--toggle-bg);
+    color: var(--toggle-color);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    z-index: 1000;
+}
+
+.theme-toggle-btn:hover {
+    transform: scale(1.1);
+}
+
+/* Restricted Access Styling */
+.pending-card {
+    border-left: 6px solid #ffc107;
+    background-color: var(--bg-card);
+}
