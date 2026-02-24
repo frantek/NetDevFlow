@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Background -->
+  <rect width="64" height="64" fill="#0d6efd" rx="8"/>
+  
+  <!-- Server/Network Icon -->
+  <!-- Top server -->
+  <rect x="8" y="8" width="48" height="14" fill="#ffffff" rx="2"/>
+  <circle cx="14" cy="15" r="2" fill="#0d6efd"/>
+  <circle cx="22" cy="15" r="2" fill="#0d6efd"/>
+  <circle cx="30" cy="15" r="2" fill="#0d6efd"/>
+  <rect x="38" y="12" width="14" height="6" fill="#4caf50" rx="1" opacity="0.8"/>
+  
+  <!-- Middle server -->
+  <rect x="8" y="25" width="48" height="14" fill="#ffffff" rx="2"/>
+  <circle cx="14" cy="32" r="2" fill="#0d6efd"/>
+  <circle cx="22" cy="32" r="2" fill="#0d6efd"/>
+  <circle cx="30" cy="32" r="2" fill="#0d6efd"/>
+  <rect x="38" y="29" width="14" height="6" fill="#4caf50" rx="1" opacity="0.8"/>
+  
+  <!-- Bottom server -->
+  <rect x="8" y="42" width="48" height="14" fill="#ffffff" rx="2"/>
+  <circle cx="14" cy="49" r="2" fill="#0d6efd"/>
+  <circle cx="22" cy="49" r="2" fill="#0d6efd"/>
+  <circle cx="30" cy="49" r="2" fill="#0d6efd"/>
+  <rect x="38" y="46" width="14" height="6" fill="#4caf50" rx="1" opacity="0.8"/>
+</svg>
