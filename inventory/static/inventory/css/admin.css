@@ -209,7 +209,12 @@ body {
     text-decoration: none !important;
     transition: all 0.2s ease !important;
     cursor: pointer !important;
-    display: inline-block !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 44px !important;
+    height: auto !important;
+    line-height: 1.5 !important;
 }
 
 .button:hover, input[type=submit]:hover, .object-tools a:hover {
@@ -222,7 +227,18 @@ body {
 }
 
 .button.danger, .deletelink { 
-    background: #dc3545 !important; 
+    background: #dc3545 !important;
+    padding: 12px 24px !important;
+    min-height: 44px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.button.danger:hover, .deletelink:hover {
+    background: #c82333 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: var(--shadow-md) !important;
 }
 
 /* Tables */
@@ -346,7 +362,7 @@ label {
 }
 
 input[type=text], input[type=password], input[type=email], 
-input[type=number], input[type=date], textarea, select {
+input[type=number], input[type=date], textarea {
     background-color: var(--bg-card) !important;
     color: var(--text-main) !important;
     border: 1px solid var(--border-color) !important;
@@ -355,11 +371,43 @@ input[type=number], input[type=date], textarea, select {
     font-family: inherit !important;
 }
 
+select {
+    background-color: var(--bg-card) !important;
+    color: var(--text-main) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    font-family: inherit !important;
+    line-height: 1.5 !important;
+    min-height: 44px !important;
+    height: 44px !important;
+}
+
+select option {
+    padding: 8px 4px !important;
+    line-height: 1.6 !important;
+    background-color: var(--bg-card) !important;
+    color: var(--text-main) !important;
+}
+
 input[type=text]:focus, input[type=password]:focus, input[type=email]:focus,
 input[type=number]:focus, input[type=date]:focus, textarea:focus, select:focus {
     border-color: var(--accent-primary) !important;
     box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15) !important;
     outline: none !important;
+}
+
+/* Ensure select dropdown renders properly */
+select:-webkit-appearance {
+    appearance: none !important;
+}
+
+select::-webkit-scrollbar {
+    width: 8px !important;
+}
+
+select::-webkit-scrollbar-track {
+    background: var(--bg-body) !important;
 }
 
 /* Theme Toggle Hide Django Default */
