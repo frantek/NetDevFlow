@@ -35,8 +35,8 @@
                             <i class="fas fa-city me-2 text-primary opacity-50"></i>{{ dc.name }}
                         </td>
                         <td class="theme-text-muted small">{{ dc.physical_address|truncatechars:40 }}</td>
-                        <td><span class="badge bg-body-tertiary theme-text-main border">{{ dc.row_count }} Rows</span></td>
-                        <td><span class="badge bg-body-tertiary theme-text-main border">{{ dc.rack_count }} Racks</span></td>
+                        <td><span class="badge theme-text-main border" style="background-color: var(--bg-body);">{{ dc.row_count }} Rows</span></td>
+                        <td><span class="badge theme-text-main border" style="background-color: var(--bg-body);">{{ dc.rack_count }} Racks</span></td>
                         <td class="text-end pe-4">
                             <div class="btn-group">
                                 <a href="{% url 'datacenter_update' dc.id %}" class="btn btn-sm btn-outline-secondary">

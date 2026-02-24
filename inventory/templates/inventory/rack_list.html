@@ -43,7 +43,7 @@
                             <span class="theme-text-muted mx-1">/</span>
                             <span class="theme-text-muted">{{ rack.row.name }}</span>
                         </td>
-                        <td><span class="badge bg-body-tertiary theme-text-main border">{{ rack.ru_capacity }}U</span></td>
+                        <td><span class="badge theme-text-main border" style="background-color: var(--bg-body);">{{ rack.ru_capacity }}U</span></td>
                         <td style="min-width: 150px;">
                             {% with occupied=rack.ru_capacity|add:rack.get_available_units|add:rack.ru_capacity %}
                                 {# Calculation logic usually handled in model, using a simplified progress bar here #}

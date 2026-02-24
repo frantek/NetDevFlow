@@ -23,14 +23,14 @@
                                 <label class="form-label fw-bold small text-uppercase theme-text-muted">Network Prefix (CIDR)</label>
                                 <div class="input-group mb-2">
                                     <input type="text" id="ip_part" class="form-control" placeholder="e.g. 192.168.1.0" style="flex: 3;">
-                                    <span class="input-group-text bg-body-tertiary">/</span>
+                                    <span class="input-group-text" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);">/</span>
                                     <select id="mask_part" class="form-select" style="flex: 1.5;">
                                         <!-- Populated via JavaScript to support IPv4 (32) and IPv6 (128) -->
                                     </select>
                                 </div>
                                 
                                 <!-- Dynamic Range Display -->
-                                <div id="network-info-box" class="p-3 mb-3 rounded border bg-body-tertiary d-none">
+                                <div id="network-info-box" class="p-3 mb-3 rounded border" style="background-color: var(--bg-body); border-color: var(--border-color) !important; color: var(--text-main);">
                                     <h6 class="tiny fw-bold text-uppercase theme-text-muted mb-2 border-bottom pb-1">Network Calculation</h6>
                                     <div class="row g-2">
                                         <div class="col-6">
