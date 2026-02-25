@@ -1,0 +1,310 @@
+/* Aether Labs Theme - Modern Orange/Coral with Deep Black */
+
+[data-theme="aether"] {
+    --bg-body: #0a0a0a;
+    --bg-card: #1a1a1a;
+    --bg-nav: #000000;
+    --text-main: #ffffff;
+    --text-muted: #b0b0b0;
+    --border-color: #2a2a28;
+    --accent-primary: #ff6633;
+    --accent-secondary: #ff8844;
+    --accent-tertiary: #cc4422;
+    --toggle-bg: #ffffff;
+    --toggle-color: #0a0a0a;
+    --shadow-sm: 0 2px 8px rgba(255, 102, 51, 0.1);
+    --shadow-md: 0 6px 20px rgba(255, 102, 51, 0.15);
+    --table-hover: rgba(255, 102, 51, 0.05);
+
+    /* Stats Colors - Warm Tones */
+    --stats-success-bg: rgba(255, 136, 68, 0.1);
+    --stats-danger-bg: rgba(204, 68, 34, 0.1);
+    --stats-info-bg: rgba(255, 102, 51, 0.1);
+    --stats-success-text: #ffaa77;
+    --stats-danger-text: #ff7755;
+    --stats-info-text: #ff8844;
+
+    /* Role Icon Colors */
+    --role-manager: #ff9955;
+    --role-technician: #ff7733;
+    --role-readonly: #cc6644;
+    --role-pending: #ffaa44;
+}
+
+/* Global overrides for Aether theme */
+[data-theme="aether"] body {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1410 100%);
+}
+
+[data-theme="aether"] .card {
+    background: linear-gradient(135deg, #1a1a1a 0%, #201815 100%);
+    border: 1px solid rgba(255, 102, 51, 0.2);
+    box-shadow: 0 4px 12px rgba(255, 102, 51, 0.08);
+}
+
+[data-theme="aether"] .card:hover {
+    border-color: rgba(255, 102, 51, 0.4);
+    box-shadow: 0 8px 24px rgba(255, 102, 51, 0.12);
+}
+
+[data-theme="aether"] .form-control,
+[data-theme="aether"] .form-select {
+    background-color: #151515 !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 102, 51, 0.25) !important;
+}
+
+[data-theme="aether"] .form-control:focus,
+[data-theme="aether"] .form-select:focus {
+    border-color: #ff6633 !important;
+    box-shadow: 0 0 0 0.2rem rgba(255, 102, 51, 0.25) !important;
+}
+
+[data-theme="aether"] .btn-primary {
+    background-color: #ff6633 !important;
+    border-color: #ff6633 !important;
+    color: #000000 !important;
+    font-weight: 600;
+}
+
+[data-theme="aether"] .btn-primary:hover {
+    background-color: #ff8844 !important;
+    border-color: #ff8844 !important;
+}
+
+[data-theme="aether"] .btn-outline-secondary {
+    color: #ff6633 !important;
+    border-color: #ff6633 !important;
+}
+
+[data-theme="aether"] .btn-outline-secondary:hover {
+    background-color: #ff6633 !important;
+    border-color: #ff6633 !important;
+    color: #000000 !important;
+}
+
+[data-theme="aether"] .btn-danger,
+[data-theme="aether"] .btn-outline-danger {
+    color: #ffffff !important;
+    border-color: #a78bfa !important;
+    background-color: #7c3aed !important;
+}
+
+[data-theme="aether"] .btn-outline-danger:hover,
+[data-theme="aether"] .btn-danger:hover {
+    background-color: #6d28d9 !important;
+    border-color: #6d28d9 !important;
+}
+
+[data-theme="aether"] .btn-warning {
+    background-color: #ffc107 !important;
+    border-color: #ffc107 !important;
+    color: #000000 !important;
+    font-weight: 600 !important;
+}
+
+[data-theme="aether"] .btn-warning:hover {
+    background-color: #ffb300 !important;
+    border-color: #ffb300 !important;
+    color: #000000 !important;
+}
+
+[data-theme="aether"] .btn-outline-danger:hover {
+    background-color: #ff7755 !important;
+    border-color: #ff7755 !important;
+    color: #000000 !important;
+}
+
+[data-theme="aether"] .navbar {
+    background: linear-gradient(135deg, #000000 0%, #0d0805 100%) !important;
+    border-bottom-color: #ff6633 !important;
+}
+
+[data-theme="aether"] .navbar-brand {
+    color: #ff6633 !important;
+}
+
+[data-theme="aether"] .nav-link {
+    color: #b0b0b0 !important;
+    transition: color 0.3s ease;
+}
+
+[data-theme="aether"] .nav-link:hover {
+    color: #ff6633 !important;
+}
+
+/* Badge styling for Aether */
+[data-theme="aether"] .badge {
+    background: linear-gradient(135deg, #ff6633 0%, #ff8844 100%);
+    color: #000000 !important;
+    font-weight: 700;
+}
+
+[data-theme="aether"] .badge.bg-success-subtle {
+    background: rgba(255, 170, 119, 0.15) !important;
+    color: #ffaa77 !important;
+}
+
+[data-theme="aether"] .badge.bg-warning-subtle {
+    background: rgba(255, 136, 68, 0.15) !important;
+    color: #ff8844 !important;
+}
+
+[data-theme="aether"] .badge.bg-danger-subtle {
+    background: rgba(255, 119, 85, 0.15) !important;
+    color: #ff7755 !important;
+}
+
+[data-theme="aether"] .badge.bg-secondary-subtle {
+    background: rgba(204, 102, 68, 0.15) !important;
+    color: #cc6644 !important;
+}
+
+[data-theme="aether"] .badge.bg-primary-subtle {
+    background: rgba(255, 102, 51, 0.15) !important;
+    color: #ff8844 !important;
+}
+
+/* Table styling */
+[data-theme="aether"] .table {
+    color: #ffffff;
+}
+
+[data-theme="aether"] .table thead th {
+    background-color: #151515;
+    border-bottom: 2px solid #ff6633;
+    color: #ff8844;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+[data-theme="aether"] .table tbody tr {
+    border-color: rgba(255, 102, 51, 0.1);
+}
+
+[data-theme="aether"] .table tbody tr:hover {
+    background-color: rgba(255, 102, 51, 0.05);
+}
+
+/* Alert styling */
+[data-theme="aether"] .alert {
+    background: linear-gradient(135deg, rgba(255, 102, 51, 0.1), rgba(204, 68, 34, 0.05));
+    border: 1px solid rgba(255, 102, 51, 0.3);
+    color: #ffffff;
+}
+
+[data-theme="aether"] .alert-danger {
+    border-color: rgba(255, 119, 85, 0.5);
+}
+
+/* Markdown body for Aether */
+[data-theme="aether"] .markdown-body {
+    color: #ffffff;
+}
+
+[data-theme="aether"] .markdown-body code {
+    background-color: #151515;
+    color: #ff8844;
+    border: 1px solid rgba(255, 102, 51, 0.2);
+}
+
+[data-theme="aether"] .markdown-body pre {
+    background-color: #0f0f0f;
+    border: 1px solid rgba(255, 102, 51, 0.2);
+}
+
+[data-theme="aether"] .markdown-body blockquote {
+    border-left-color: #ff6633;
+    color: #b0b0b0;
+}
+
+[data-theme="aether"] .markdown-body a {
+    color: #ff8844;
+}
+
+[data-theme="aether"] .markdown-body h1,
+[data-theme="aether"] .markdown-body h2,
+[data-theme="aether"] .markdown-body h3,
+[data-theme="aether"] .markdown-body h4,
+[data-theme="aether"] .markdown-body h5,
+[data-theme="aether"] .markdown-body h6 {
+    color: #ffffff;
+    border-bottom-color: rgba(255, 102, 51, 0.2);
+}
+
+/* Glowing accent for Aether */
+[data-theme="aether"] .accent-glow {
+    color: #ff6633;
+    text-shadow: 0 0 10px rgba(255, 102, 51, 0.3);
+}
+
+/* Modal styling */
+[data-theme="aether"] .modal-content {
+    background: linear-gradient(135deg, #1a1a1a 0%, #201815 100%);
+    border: 1px solid rgba(255, 102, 51, 0.2);
+}
+
+/* Kanban styling */
+[data-theme="aether"] .kanban-column {
+    background-color: #151515;
+    border: 1px solid rgba(255, 102, 51, 0.15);
+}
+
+[data-theme="aether"] .kanban-header {
+    background-color: #0f0f0f;
+    border-bottom-color: rgba(255, 102, 51, 0.2);
+    color: #ff8844;
+}
+
+[data-theme="aether"] .kanban-card {
+    background-color: #1a1a1a;
+    border: 1px solid rgba(255, 102, 51, 0.15);
+    border-left-color: #ff6633;
+}
+
+[data-theme="aether"] .kanban-card:hover {
+    border-color: rgba(255, 102, 51, 0.4);
+    box-shadow: 0 8px 24px rgba(255, 102, 51, 0.15);
+}
+
+/* Accent color for various elements */
+[data-theme="aether"] a,
+[data-theme="aether"] .text-primary {
+    color: #ff8844 !important;
+}
+
+[data-theme="aether"] a:hover,
+[data-theme="aether"] .text-primary:hover {
+    color: #ffaa55 !important;
+}
+
+/* Stats card styling */
+[data-theme="aether"] .stats-card {
+    background: linear-gradient(135deg, rgba(255, 102, 51, 0.08), rgba(204, 68, 34, 0.04));
+    border: 1px solid rgba(255, 102, 51, 0.15);
+}
+
+[data-theme="aether"] .stats-card:hover {
+    border-color: rgba(255, 102, 51, 0.3);
+    box-shadow: 0 8px 24px rgba(255, 102, 51, 0.12);
+}
+
+/* Scrollbar styling for Aether */
+[data-theme="aether"] ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+[data-theme="aether"] ::-webkit-scrollbar-track {
+    background: #0f0f0f;
+}
+
+[data-theme="aether"] ::-webkit-scrollbar-thumb {
+    background: #ff6633;
+    border-radius: 5px;
+}
+
+[data-theme="aether"] ::-webkit-scrollbar-thumb:hover {
+    background: #ff8844;
+}

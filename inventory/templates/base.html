@@ -18,6 +18,7 @@
     <!-- NetDevFlow Shared Styles -->
     <link rel="stylesheet" href="{% static 'inventory/css/netdevflow.css' %}">
     <link rel="stylesheet" href="{% static 'inventory/css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'inventory/css/theme-aether.css' %}">
     
     {% block extra_css %}{% endblock %}
     
@@ -105,13 +106,27 @@
                                 {{ user.username }}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0">
-                                <!-- Theme Toggle Integrated into User Menu -->
+                                <!-- Theme Selection Submenu -->
+                                <li><span class="dropdown-header"><i class="fas fa-palette me-2"></i>Theme</span></li>
                                 <li>
-                                    <button class="dropdown-item theme-toggle-trigger d-flex align-items-center" type="button">
-                                        <i class="fas fa-adjust me-2 theme-icon-spin"></i>
-                                        <span class="theme-label">Switch Theme</span>
+                                    <button class="dropdown-item theme-selector d-flex align-items-center" data-theme="light" type="button">
+                                        <i class="fas fa-sun me-2" style="color: #ffc107;"></i>
+                                        Light Mode
                                     </button>
                                 </li>
+                                <li>
+                                    <button class="dropdown-item theme-selector d-flex align-items-center" data-theme="dark" type="button">
+                                        <i class="fas fa-moon me-2" style="color: #6c757d;"></i>
+                                        Dark Mode
+                                    </button>
+                                </li>
+                                <li>
+                                    <button class="dropdown-item theme-selector d-flex align-items-center" data-theme="aether" type="button">
+                                        <i class="fas fa-star me-2" style="color: #ff6633;"></i>
+                                        Æther
+                                    </button>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="fas fa-cog me-2"></i>Admin HQ</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>

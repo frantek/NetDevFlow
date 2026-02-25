@@ -1,6 +1,7 @@
 /**
  * NetDevFlow Theme Management
  * Handles theme switching and persistence
+ * Supports: light, dark, aether
  */
 
 // Initialize theme on page load (before DOM ready to prevent flash)
@@ -10,51 +11,68 @@
     document.documentElement.setAttribute('data-theme', savedTheme);
 })();
 
-// Theme toggle functionality
+// Theme selection functionality
 window.addEventListener('DOMContentLoaded', () => {
-    // Create and append theme toggle button
-    const toggleBtn = document.createElement('button');
-    toggleBtn.className = 'theme-toggle-btn';
-    toggleBtn.setAttribute('type', 'button');
-    toggleBtn.innerHTML = document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
-    toggleBtn.setAttribute('title', 'Toggle theme');
-    toggleBtn.setAttribute('aria-label', 'Toggle dark/light theme');
-    document.body.appendChild(toggleBtn);
+    /**
+     * Set the theme and save to localStorage
+     * @param {string} theme - 'light', 'dark', or 'aether'
+     */
+    window.setTheme = function(theme) {
+        if (!['light', 'dark', 'aether'].includes(theme)) {
+            console.warn(`Invalid theme: ${theme}`);
+            return;
+        }
+        
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('site-theme', theme);
+        updateThemeUI(theme);
+    };
 
-    // Toggle theme on button click
-    toggleBtn.addEventListener('click', () => {
-        const current = document.documentElement.getAttribute('data-theme');
-        const next = current === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', next);
-        localStorage.setItem('site-theme', next);
-        toggleBtn.innerHTML = next === 'dark' ? '☀️' : '🌙';
-    });
-
-    // Update theme label in user menu if it exists
-    const updateThemeUI = (theme) => {
-        const labels = document.querySelectorAll('.theme-label');
-        labels.forEach(label => {
-            label.textContent = theme === 'dark' ? '☀️ Switch to Light Mode' : '🌙 Switch to Dark Mode';
+    /**
+     * Update the visual state of theme selector buttons
+     * @param {string} currentTheme - The currently active theme
+     */
+    const updateThemeUI = (currentTheme) => {
+        // Update active state for all theme selector buttons
+        document.querySelectorAll('.theme-selector').forEach(button => {
+            const buttonTheme = button.getAttribute('data-theme');
+            const textContent = button.textContent.trim();
+            
+            if (buttonTheme === currentTheme) {
+                button.classList.add('active');
+                button.setAttribute('aria-pressed', 'true');
+                // Add checkmark if not already present
+                if (!textContent.startsWith('✓')) {
+                    button.innerHTML = button.innerHTML.replace(textContent, '✓ ' + textContent);
+                }
+            } else {
+                button.classList.remove('active');
+                button.setAttribute('aria-pressed', 'false');
+                // Remove checkmark if present
+                if (textContent.startsWith('✓')) {
+                    button.innerHTML = button.innerHTML.replace('✓ ', '');
+                }
+            }
         });
     };
 
-    const toggleTheme = () => {
-        const current = document.documentElement.getAttribute('data-theme');
-        const next = current === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', next);
-        localStorage.setItem('site-theme', next);
-        updateThemeUI(next);
-    };
-
-    // Initial UI state
-    updateThemeUI(document.documentElement.getAttribute('data-theme'));
-
-    // Attach listeners to all theme toggle triggers
-    document.querySelectorAll('.theme-toggle-trigger').forEach(trigger => {
-        trigger.addEventListener('click', (e) => {
+    // Attach listeners to all theme selector buttons
+    document.querySelectorAll('.theme-selector').forEach(button => {
+        // Add aria-pressed attribute for accessibility
+        button.setAttribute('aria-pressed', 'false');
+        
+        button.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            toggleTheme();
+            
+            const theme = button.getAttribute('data-theme');
+            window.setTheme(theme);
         });
     });
+
+    // Initialize UI state on page load
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    updateThemeUI(currentTheme);
 });
+
+

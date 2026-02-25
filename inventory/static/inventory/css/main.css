@@ -35,27 +35,33 @@
     color: white !important;
 }
 
-/* Improve btn-outline-danger contrast, especially in dark mode */
+/* Danger buttons: purple for better distinction from orange view links */
+.btn-danger,
 .btn-outline-danger {
-    color: #b02a37 !important;
-    border-color: #b02a37 !important;
+    color: #ffffff !important;
+    border-color: #7c3aed !important;
+    background-color: #7c3aed !important;
 }
 
+.btn-danger:hover,
 .btn-outline-danger:hover {
-    background-color: #b02a37 !important;
-    border-color: #b02a37 !important;
+    background-color: #6d28d9 !important;
+    border-color: #6d28d9 !important;
     color: #ffffff !important;
 }
 
+[data-theme="dark"] .btn-danger,
 [data-theme="dark"] .btn-outline-danger {
-    color: #ff6b6b !important;
-    border-color: #ff6b6b !important;
+    color: #ffffff !important;
+    border-color: #a78bfa !important;
+    background-color: #7c3aed !important;
 }
 
+[data-theme="dark"] .btn-danger:hover,
 [data-theme="dark"] .btn-outline-danger:hover {
-    background-color: #ff6b6b !important;
-    border-color: #ff6b6b !important;
-    color: #1a1d21 !important;
+    background-color: #6d28d9 !important;
+    border-color: #6d28d9 !important;
+    color: #ffffff !important;
 }
 
 /* Ensure undecorated links remain readable in dark mode */
@@ -101,3 +107,74 @@ span.text-primary,
     color: white;
     text-align: center;
 }
+
+/* Theme Selector Styles */
+.theme-selector {
+    position: relative;
+    transition: all 0.2s ease;
+    border-left: 3px solid transparent;
+}
+
+.theme-selector.active {
+    background-color: var(--accent-primary) !important;
+    color: white !important;
+    font-weight: 600;
+    border-left-color: var(--accent-primary);
+    padding-left: calc(0.75rem - 3px);
+}
+
+.theme-selector:hover:not(.active) {
+    background-color: rgba(var(--accent-primary-rgb), 0.08) !important;
+}
+
+.dropdown-header {
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    padding: 0.5rem 1rem !important;
+}
+
+/* Yellow buttons with black text for consistent visibility */
+.btn-warning {
+    background-color: #ffc107 !important;
+    border-color: #ffc107 !important;
+    color: #000000 !important;
+    font-weight: 600 !important;
+}
+
+.btn-warning:hover {
+    background-color: #ffb300 !important;
+    border-color: #ffb300 !important;
+    color: #000000 !important;
+}
+
+.btn-warning:focus {
+    box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.5) !important;
+    color: #000000 !important;
+}
+
+.btn-outline-warning {
+    color: #ffc107 !important;
+    border-color: #ffc107 !important;
+}
+
+.btn-outline-warning:hover {
+    background-color: #ffc107 !important;
+    border-color: #ffc107 !important;
+    color: #000000 !important;
+}
+
+[data-theme="dark"] .btn-warning {
+    background-color: #ffc107 !important;
+    border-color: #ffc107 !important;
+    color: #000000 !important;
+}
+
+[data-theme="dark"] .btn-warning:hover {
+    background-color: #ffb300 !important;
+    border-color: #ffb300 !important;
+    color: #000000 !important;
+}
+
