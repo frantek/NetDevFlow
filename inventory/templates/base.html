@@ -90,7 +90,18 @@
                     {% if user.is_authenticated %}
                         <div class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle text-white fw-bold" href="#" role="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-user-circle me-1"></i>{{ user.username }}
+                                {% if user.profile.role == 'MANAGER' %}
+                                    <i class="fas fa-user-shield me-1 role-icon role-manager" title="Infrastructure Manager"></i>
+                                {% elif user.profile.role == 'TECHNICIAN' %}
+                                    <i class="fas fa-user-gear me-1 role-icon role-technician" title="Field Technician"></i>
+                                {% elif user.profile.role == 'READONLY' %}
+                                    <i class="fas fa-user-lock me-1 role-icon role-readonly" title="Read-Only Auditor"></i>
+                                {% elif user.profile.role == 'PENDING' %}
+                                    <i class="fas fa-user-clock me-1 role-icon role-pending" title="Pending Approval"></i>
+                                {% else %}
+                                    <i class="fas fa-user-circle me-1 role-icon" title="User"></i>
+                                {% endif %}
+                                {{ user.username }}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0">
                                 <!-- Theme Toggle Integrated into User Menu -->

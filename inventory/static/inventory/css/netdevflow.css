@@ -22,6 +22,12 @@
     --stats-success-text: #198754;
     --stats-danger-text: #dc3545;
     --stats-info-text: #0dcaf0;
+
+    /* Role Icon Colors */
+    --role-manager: #f59f00;
+    --role-technician: #339af0;
+    --role-readonly: #868e96;
+    --role-pending: #f08c00;
 }
 
 [data-theme="dark"] {
@@ -45,6 +51,12 @@
     --stats-success-text: #75b798;
     --stats-danger-text: #ea868f;
     --stats-info-text: #6edff6;
+
+    /* Role Icon Colors */
+    --role-manager: #ffd43b;
+    --role-technician: #4dabf7;
+    --role-readonly: #ced4da;
+    --role-pending: #ffa94d;
 }
 
 /* --- GLOBAL RESET & LAYOUT --- */

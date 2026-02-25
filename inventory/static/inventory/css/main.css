@@ -13,6 +13,16 @@
     font-size: 1.5rem;
 }
 
+.role-icon {
+    font-size: 1.05rem;
+    vertical-align: -0.08rem;
+}
+
+.role-manager { color: var(--role-manager); }
+.role-technician { color: var(--role-technician); }
+.role-readonly { color: var(--role-readonly); }
+.role-pending { color: var(--role-pending); }
+
 /* Easter Egg Styling */
 #easter-egg-container {
     display: none;
