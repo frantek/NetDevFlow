@@ -9,6 +9,10 @@
     --sidebar-bg: #1a1d21;
 }
 
+[data-theme="aether"] {
+    --sidebar-bg: #0a0a0a;
+}
+
 /* --- GLOBAL RESET & LAYOUT --- */
 html {
     height: 100%;
@@ -18,6 +22,33 @@ body {
     display: flex !important;
     flex-direction: column !important;
     min-height: 100vh !important;
+}
+
+/* Fix for calendar widget table layout */
+.calendarbox {
+    width: 40em !important; /* Override default 19em for better visibility */
+}
+
+.calendarbox .calendar,
+.calendar {
+    display: table !important;
+    width: 100% !important;
+    table-layout: fixed !important;
+}
+
+.calendar tbody,
+.calendar thead {
+    display: table-row-group !important;
+}
+
+.calendar tr {
+    display: table-row !important;
+}
+
+.calendar th,
+.calendar td {
+    display: table-cell !important;
+    width: 14.28% !important; /* 100% / 7 days = 14.28% */
 }
 
 /* Fix for the invasive skip link */
@@ -202,7 +233,6 @@ body {
     padding: 10px 20px !important;
     font-weight: 600 !important;
     border: none !important;
-    color: white !important;
     text-transform: uppercase !important;
     font-size: 0.8rem !important;
     letter-spacing: 0.5px !important;
@@ -217,9 +247,44 @@ body {
     line-height: 1.5 !important;
 }
 
+/* Theme-specific button text colors */
+:root .button,
+:root input[type=submit],
+:root .object-tools a {
+    color: white !important;
+}
+
+[data-theme="dark"] .button,
+[data-theme="dark"] input[type=submit],
+[data-theme="dark"] .object-tools a {
+    color: white !important;
+}
+
+[data-theme="aether"] .button,
+[data-theme="aether"] input[type=submit],
+[data-theme="aether"] .object-tools a {
+    color: #000000 !important; /* Black text on orange for better contrast */
+}
+
+/* Ensure links with .button class always have appropriate text */
+a.button,
+a.button:link,
+a.button:visited,
+a.button:active,
+a.historylink,
+a.historylink:link,
+a.historylink:visited,
+a.historylink:active {
+    color: inherit !important;
+}
+
 .button:hover, input[type=submit]:hover, .object-tools a:hover {
     transform: translateY(-2px) !important;
     box-shadow: var(--shadow-md) !important;
+}
+
+.historylink:hover {
+    opacity: 0.9 !important;
 }
 
 .button.default, input[type=submit].default { 

@@ -13,6 +13,7 @@
 <!-- NetDevFlow Shared Styles -->
 <link rel="stylesheet" href="{% static 'inventory/css/netdevflow.css' %}">
 <link rel="stylesheet" href="{% static 'inventory/css/admin.css' %}">
+<link rel="stylesheet" href="{% static 'inventory/css/theme-aether.css' %}">
 
 <!-- Theme initialization (inline to prevent flash) -->
 <script>
@@ -29,10 +30,174 @@
 <script src="{% static 'inventory/js/theme.js' %}"></script>
 {% endblock %}
 
+{% block userlinks %}
+{{ block.super }}
+<style>
+    /* Theme selector in admin header */
+    .theme-selector-admin {
+        display: inline-block;
+        margin-left: 15px;
+        position: relative;
+    }
+    
+    .theme-dropdown-btn {
+        background: transparent;
+        border: 1px solid rgba(255,255,255,0.3);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.875rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s ease;
+    }
+    
+    .theme-dropdown-btn:hover {
+        background: rgba(255,255,255,0.1);
+        border-color: rgba(255,255,255,0.5);
+    }
+    
+    .theme-dropdown-menu {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: calc(100% + 5px);
+        background: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        min-width: 180px;
+        z-index: 9999;
+        overflow: hidden;
+    }
+    
+    .theme-dropdown-menu.show {
+        display: block;
+    }
+    
+    .theme-dropdown-menu button {
+        width: 100%;
+        padding: 10px 16px;
+        background: transparent;
+        border: none;
+        color: #ffffff;
+        text-align: left;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: background 0.2s ease;
+        font-size: 0.9rem;
+    }
+    
+    .theme-dropdown-menu button:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .theme-dropdown-menu button.active {
+        background: var(--accent-primary);
+        font-weight: 600;
+    }
+    
+    /* Theme-specific active button text colors */
+    :root .theme-dropdown-menu button.active {
+        color: white;
+    }
+    
+    [data-theme="dark"] .theme-dropdown-menu button.active {
+        color: white;
+    }
+    
+    [data-theme="aether"] .theme-dropdown-menu button.active {
+        color: #000000;
+    }
+    
+    .theme-dropdown-menu button.active::before {
+        content: '✓ ';
+    }
+</style>
+
+<div class="theme-selector-admin">
+    <button class="theme-dropdown-btn" id="adminThemeBtn" type="button">
+        <i class="fas fa-palette"></i>
+        <span id="currentThemeName">Theme</span>
+    </button>
+    <div class="theme-dropdown-menu" id="adminThemeMenu">
+        <button class="theme-selector" data-theme="light" type="button">
+            <i class="fas fa-sun" style="color: #ffc107;"></i>
+            Light Mode
+        </button>
+        <button class="theme-selector" data-theme="dark" type="button">
+            <i class="fas fa-moon" style="color: #6c757d;"></i>
+            Dark Mode
+        </button>
+        <button class="theme-selector" data-theme="aether" type="button">
+            <i class="fas fa-star" style="color: #ff6633;"></i>
+            Æther
+        </button>
+    </div>
+</div>
+
+<script>
+    // Admin theme dropdown functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const dropdownBtn = document.getElementById('adminThemeBtn');
+        const dropdownMenu = document.getElementById('adminThemeMenu');
+        const currentThemeName = document.getElementById('currentThemeName');
+        
+        // Toggle dropdown
+        dropdownBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            dropdownMenu.classList.toggle('show');
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function() {
+            dropdownMenu.classList.remove('show');
+        });
+        
+        // Prevent dropdown close when clicking inside
+        dropdownMenu.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+        
+        // Update theme name display
+        function updateThemeDisplay() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const themeNames = {
+                'light': 'Light',
+                'dark': 'Dark',
+                'aether': 'Æther'
+            };
+            currentThemeName.textContent = themeNames[currentTheme] || 'Theme';
+        }
+        
+        // Initial update
+        updateThemeDisplay();
+        
+        // Update on theme change
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.attributeName === 'data-theme') {
+                    updateThemeDisplay();
+                }
+            });
+        });
+        
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['data-theme']
+        });
+    });
+</script>
+{% endblock %}
+
 {% block footer %}
 <footer id="footer" class="py-5 border-top bg-card text-center mt-auto">
     <div class="container">
-        <p class="mb-0 small theme-text-muted">© 2024 NetDevFlow — Enterprise Admin HQ</p>
+        <p class="mb-0 small theme-text-muted">© 2026 NetDevFlow — Enterprise Admin HQ</p>
     </div>
 </footer>
 {% endblock %}

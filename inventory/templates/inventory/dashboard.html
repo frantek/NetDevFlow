@@ -232,7 +232,7 @@
         <div class="col-lg-10">
             <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 20px;">
                 <div class="row g-0">
-                    <div class="col-md-6 d-flex align-items-center justify-content-center p-5 text-white" style="background-color: #003d82;">
+                    <div class="col-md-6 d-flex align-items-center justify-content-center p-5 text-white aether-hero-panel">
                         <div class="text-center">
                             <i class="fas fa-network-wired fa-5x mb-4"></i>
                             <h1 class="fw-bold">NetDevFlow</h1>
@@ -299,6 +299,33 @@
     /* Dark mode specific badge adjustments */
     [data-theme="dark"] .badge.bg-body-tertiary {
         background-color: var(--border-color) !important;
+    }
+
+    /* Hero Panel Gradient Backgrounds */
+    .aether-hero-panel {
+        background-color: #003d82; /* Fallback for light theme */
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Æther Theme: Dramatic black-to-orange mist gradient */
+    [data-theme="aether"] .aether-hero-panel {
+        background: 
+            radial-gradient(ellipse at 40% 50%, rgba(255, 102, 51, 0.35) 0%, rgba(255, 102, 51, 0.15) 25%, transparent 60%),
+            radial-gradient(ellipse at 70% 30%, rgba(255, 136, 68, 0.25) 0%, transparent 50%),
+            radial-gradient(ellipse at 30% 70%, rgba(204, 68, 34, 0.2) 0%, transparent 45%),
+            linear-gradient(135deg, #0a0a0a 0%, #1a1410 50%, #0a0a0a 100%);
+        box-shadow: inset 0 0 100px rgba(255, 102, 51, 0.1);
+    }
+
+    /* Dark Theme: Subtle blue-to-dark gradient */
+    [data-theme="dark"] .aether-hero-panel {
+        background: linear-gradient(135deg, #1a1d21 0%, #003d82 50%, #1a1d21 100%);
+    }
+
+    /* Light theme keeps the solid blue */
+    :root .aether-hero-panel {
+        background-color: #003d82;
     }
 </style>
 {% endblock %}
