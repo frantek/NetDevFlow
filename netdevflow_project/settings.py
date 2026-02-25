@@ -33,10 +33,12 @@ ALLOWED_HOSTS = ['*']
 
 AUTHENTICATION_BACKENDS = [
 
-    # Needed to login by username in Django admin, regardless of `allauth`
+    # Needed to login by username in Django admin,
+    # regardless of `allauth`
     'django.contrib.auth.backends.ModelBackend',
 
-    # `allauth` specific authentication methods, such as login by email
+    # `allauth` specific authentication methods,
+    # such as login by email
     'allauth.account.auth_backends.AuthenticationBackend',
 
 ]
@@ -214,16 +216,20 @@ WSGI_APPLICATION = 'netdevflow_project.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        # This looks for an environment variable named DATABASE_URL
+        # This looks for an environment variable
+        # named DATABASE_URL
         default=f'sqlite:///{os.path.join(BASE_DIR, "db.sqlite3")}',
         conn_max_age=600,
-        ssl_require=True if os.environ.get('DATABASE_URL') else False
+        ssl_require=(
+            True if os.environ.get('DATABASE_URL') else False
+        )
     )
 }
 
 
 # Password validation
-# https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
+# https://docs.djangoproject.com/en/6.0/ref/settings/
+# #auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -270,7 +276,9 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = (
+    'whitenoise.storage.CompressedManifestStaticFilesStorage'
+)
 LOGIN_URL = 'account_login'
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'account_login'
@@ -291,23 +299,37 @@ MEDIA_URL = '/media/'
 
 # Use Cloudinary for media storage in production
 if os.environ.get('CLOUDINARY_CLOUD_NAME'):
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    DEFAULT_FILE_STORAGE = (
+        'cloudinary_storage.storage.MediaCloudinaryStorage'
+    )
     STORAGES = {
         'default': {
-            'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage',
+            'BACKEND': (
+                'cloudinary_storage.storage.MediaCloudinaryStorage'
+            ),
         },
         'staticfiles': {
-            'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+            'BACKEND': (
+                'whitenoise.storage.'
+                'CompressedManifestStaticFilesStorage'
+            ),
         },
     }
 else:
     # Local filesystem for development
-    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+    DEFAULT_FILE_STORAGE = (
+        'django.core.files.storage.FileSystemStorage'
+    )
     STORAGES = {
         'default': {
-            'BACKEND': 'django.core.files.storage.FileSystemStorage',
+            'BACKEND': (
+                'django.core.files.storage.FileSystemStorage'
+            ),
         },
         'staticfiles': {
-            'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+            'BACKEND': (
+                'whitenoise.storage.'
+                'CompressedManifestStaticFilesStorage'
+            ),
         },
     }
