@@ -20,11 +20,11 @@
                         {% if field.name == 'prefix' %}
                             <!-- Custom CIDR Compliant Input Group -->
                             <div class="mb-4">
-                                <label class="form-label fw-bold small text-uppercase theme-text-muted">Network Prefix (CIDR)</label>
+                                <label for="mask_part" class="form-label fw-bold small text-uppercase theme-text-muted">Network Prefix (CIDR)</label>
                                 <div class="input-group mb-2">
                                     <input type="text" id="ip_part" class="form-control" placeholder="e.g. 192.168.1.0" style="flex: 3;">
                                     <span class="input-group-text" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);">/</span>
-                                    <select id="mask_part" class="form-select" style="flex: 1.5;">
+                                    <select id="mask_part" class="form-select" style="flex: 1.5;" aria-labelledby>
                                         <!-- Populated via JavaScript to support IPv4 (32) and IPv6 (128) -->
                                     </select>
                                 </div>

@@ -49,7 +49,11 @@
                                 {# Calculation logic usually handled in model, using a simplified progress bar here #}
                                 <div class="progress bg-dark-subtle" style="height: 6px; border-radius: 10px;">
                                     <div class="progress-bar {% if rack.get_available_units < 5 %}bg-danger{% else %}bg-success{% endif %}" 
-                                         role="progressbar" 
+                                         role="progressbar"
+                                         aria-label="Rack utilization: {{ rack.get_available_units }} of {{ rack.ru_capacity }} units available"
+                                         aria-valuenow="{{ rack.get_available_units }}"
+                                         aria-valuemin="0"
+                                         aria-valuemax="{{ rack.ru_capacity }}"
                                          style="width: {% widthratio rack.get_available_units rack.ru_capacity 100 %}%"></div>
                                 </div>
                                 <small class="theme-text-muted mt-1 d-block" style="font-size: 0.7rem;">

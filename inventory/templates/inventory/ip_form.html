@@ -19,7 +19,7 @@
 
                 <!-- Prefix Selection (Triggers the dynamic IP lookup in GetAvailableIPsView) -->
                 <div class="mb-3">
-                    <label class="form-label fw-bold small text-uppercase theme-text-muted">Network Prefix Range</label>
+                    <label for="prefix-selector" class="form-label fw-bold small text-uppercase theme-text-muted">Network Prefix Range</label>
                     <select id="prefix-selector" class="form-select shadow-sm border-primary">
                         <option value="">-- Select a Subnet --</option>
                         {% for prefix in prefixes %}

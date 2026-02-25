@@ -118,8 +118,19 @@ main { flex: 1; }
 }
 
 [data-theme="dark"] .form-text.opacity-75 {
-    opacity: 0.9 !important;
+    opacity: 1 !important;
     color: var(--text-main) !important;
+}
+
+/* Fix contrast for lead paragraphs */
+p.lead {
+    opacity: 1 !important;
+    color: var(--text-main) !important;
+}
+
+p.lead.theme-text-muted {
+    color: var(--text-muted) !important;
+    opacity: 1 !important;
 }
 
 .form-control, .form-select {
@@ -206,12 +217,17 @@ select:focus {
 
 .table thead th {
     background-color: var(--bg-body) !important;
-    color: var(--text-muted) !important;
+    color: #000 !important;
+    font-weight: 700 !important;
     text-transform: uppercase;
     font-size: 0.75rem;
     letter-spacing: 1px;
     border-bottom: 2px solid var(--border-color) !important;
     border-top: none !important;
+}
+
+[data-theme="dark"] .table thead th {
+    color: #fff !important;
 }
 
 .table tr, .table td {
@@ -228,6 +244,63 @@ select:focus {
 [data-theme="dark"] .bg-success-subtle { background-color: rgba(25, 135, 84, 0.15) !important; }
 [data-theme="dark"] .bg-danger-subtle { background-color: rgba(220, 53, 69, 0.15) !important; }
 [data-theme="dark"] .bg-warning-subtle { background-color: rgba(255, 193, 7, 0.15) !important; }
+
+/* Status badge contrast fixes */
+.badge.bg-success-subtle.text-success {
+    color: #033d27 !important;
+    font-weight: 600 !important;
+}
+
+[data-theme="dark"] .badge.bg-success-subtle.text-success {
+    color: #5dd4a8 !important;
+    font-weight: 700 !important;
+}
+
+.badge.bg-warning-subtle.text-warning {
+    color: #483400 !important;
+    font-weight: 600 !important;
+}
+
+[data-theme="dark"] .badge.bg-warning-subtle.text-warning {
+    color: #ffc107 !important;
+    font-weight: 700 !important;
+}
+
+.badge.bg-secondary-subtle.text-secondary {
+    color: #1a1d20 !important;
+    font-weight: 600 !important;
+}
+
+[data-theme="dark"] .badge.bg-secondary-subtle.text-secondary {
+    color: #e9ecef !important;
+    font-weight: 700 !important;
+}
+
+/* Primary badge contrast fixes */
+.badge.bg-primary-subtle.text-primary {
+    color: #001a4d !important;
+    font-weight: 700 !important;
+}
+
+[data-theme="dark"] .badge.bg-primary-subtle.text-primary {
+    color: #000033 !important;
+    font-weight: 900 !important;
+    background-color: #cfe2ff !important;
+}
+
+/* Ensure bg-info badges have sufficient contrast with dark text */
+.badge.bg-info {
+    color: #000 !important;
+}
+
+/* Inventory card text contrast */
+.inventory-card {
+    color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .inventory-card {
+    color: #e1e1e1 !important;
+}
 
 /* Alert Text Colors for Dark Mode */
 .theme-alert-warning {
@@ -247,8 +320,51 @@ select:focus {
 .footer {
     background-color: var(--bg-card);
     border-top: 1px solid var(--border-color);
-    color: var(--text-muted);
+    color: var(--text-main);
     padding: 2rem 0;
+}
+
+.footer p {
+    color: var(--text-main) !important;
+}
+
+.footer .text-primary {
+    color: var(--accent-primary) !important;
+    font-weight: 600 !important;
+}
+
+/* Improve contrast for bg-primary sections with white text */
+.bg-primary,
+.col-md-6.bg-primary {
+    background-color: #003d82 !important;
+}
+
+[data-theme="dark"] .bg-primary {
+    background-color: #0b5ed7 !important;
+}
+
+/* Ensure text-primary has sufficient contrast */
+.text-primary {
+    color: var(--accent-primary) !important;
+}
+
+[data-theme="light"] .text-primary {
+    color: #0056b3 !important;
+}
+
+/* Remove opacity from small text for accessibility */
+.small.opacity-75,
+p.opacity-75,
+.opacity-75 {
+    opacity: 1 !important;
+}
+
+.form-text.small.opacity-75 {
+    opacity: 1 !important;
+}
+
+i.opacity-75 {
+    opacity: 1 !important;
 }
 
 .theme-toggle-btn {

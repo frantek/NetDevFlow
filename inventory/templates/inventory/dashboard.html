@@ -33,12 +33,12 @@
 
 {% if user.is_authenticated %}
     <!-- Row 1: Infrastructure Status -->
-    <h6 class="text-uppercase theme-text-muted small fw-bold mb-3" style="letter-spacing: 1px;">Infrastructure Status</h6>
+    <h3 class="text-uppercase theme-text-muted small fw-bold mb-3" style="letter-spacing: 1px;">Infrastructure Status</h3>
     <div class="row g-4 mb-4">
         <div class="col-md-3">
             <div class="card stats-card border-success h-100 shadow-sm">
                 <div class="card-body">
-                    <h6 class="text-uppercase theme-text-muted small fw-bold">Online Assets</h6>
+                <div class="text-uppercase theme-text-muted small fw-bold">Online Assets</div>
                     <div class="d-flex align-items-center">
                         <h2 class="mb-0 me-3">{{ online_count }}</h2>
                         <i class="fas fa-check-circle opacity-25 fa-2x text-success"></i>
@@ -49,7 +49,7 @@
         <div class="col-md-3">
             <div class="card stats-card border-danger h-100 shadow-sm">
                 <div class="card-body">
-                    <h6 class="text-uppercase theme-text-muted small fw-bold">Critical Outages</h6>
+                <div class="text-uppercase theme-text-muted small fw-bold">Critical Outages</div>
                     <div class="d-flex align-items-center">
                         <h2 class="mb-0 me-3 text-danger">{{ critical_tickets }}</h2>
                         <i class="fas fa-exclamation-triangle opacity-25 fa-2x text-danger"></i>
@@ -60,7 +60,7 @@
         <div class="col-md-3">
             <div class="card stats-card border-theme h-100 shadow-sm">
                 <div class="card-body">
-                    <h6 class="text-uppercase theme-text-muted small fw-bold">Total Devices</h6>
+                <div class="text-uppercase theme-text-muted small fw-bold">Total Devices</div>
                     <div class="d-flex align-items-center">
                         <h2 class="mb-0 me-3">{{ total_devices }}</h2>
                         <i class="fas fa-server opacity-25 fa-2x theme-text-muted"></i>
@@ -71,7 +71,7 @@
         <div class="col-md-3">
             <div class="card stats-card border-theme h-100 shadow-sm">
                 <div class="card-body">
-                    <h6 class="text-uppercase theme-text-muted small fw-bold">Active Sites</h6>
+                <div class="text-uppercase theme-text-muted small fw-bold">Active Sites</div>
                     <div class="d-flex align-items-center">
                         <h2 class="mb-0 me-3">{{ dc_stats.count }}</h2>
                         <i class="fas fa-city opacity-25 fa-2x theme-text-muted"></i>
@@ -82,58 +82,58 @@
     </div>
 
     <!-- Row 2: Network Segmentation (IPAM Cards) -->
-    <h6 class="text-uppercase theme-text-muted small fw-bold mb-3 mt-2" style="letter-spacing: 1px;">Network Segmentation (IPAM)</h6>
+    <h3 class="text-uppercase theme-text-muted small fw-bold mb-3 mt-2" style="letter-spacing: 1px;">Network Segmentation (IPAM)</h3>
     <div class="row g-4 mb-5">
         <div class="col-md-3">
             <div class="card stats-card border-primary h-100 shadow-sm">
                 <div class="card-body">
-                    <h6 class="text-uppercase theme-text-muted small fw-bold">VRF Instances</h6>
+                    <div class="text-uppercase theme-text-muted small fw-bold">VRF Instances</div>
                     <div class="d-flex align-items-center">
                         <h2 class="mb-0 me-3">{{ vrf_count }}</h2>
                         <i class="fas fa-project-diagram opacity-25 fa-2x text-primary"></i>
                     </div>
                     <small class="theme-text-muted d-block mt-1">Virtual Routing Tables</small>
-                    <a href="{% url 'vrf_list' %}" class="stretched-link"></a>
+                    <a href="{% url 'vrf_list' %}" class="stretched-link" aria-label="View VRF Instances"></a>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card stats-card border-info h-100 shadow-sm">
                 <div class="card-body">
-                    <h6 class="text-uppercase theme-text-muted small fw-bold">VLANs</h6>
+                    <div class="text-uppercase theme-text-muted small fw-bold">VLANs</div>
                     <div class="d-flex align-items-center">
                         <h2 class="mb-0 me-3">{{ vlan_count }}</h2>
                         <i class="fas fa-layer-group opacity-25 fa-2x text-info"></i>
                     </div>
                     <small class="theme-text-muted d-block mt-1">L2 Broadcast Domains</small>
-                    <a href="{% url 'vlan_list' %}" class="stretched-link"></a>
+                    <a href="{% url 'vlan_list' %}" class="stretched-link" aria-label="View VLANs"></a>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card stats-card border-info h-100 shadow-sm">
                 <div class="card-body">
-                    <h6 class="text-uppercase theme-text-muted small fw-bold">Managed Prefixes</h6>
+                    <div class="text-uppercase theme-text-muted small fw-bold">Managed Prefixes</div>
                     <div class="d-flex align-items-center">
                         <h2 class="mb-0 me-3">{{ prefix_count }}</h2>
                         <i class="fas fa-network-wired opacity-25 fa-2x text-info"></i>
                     </div>
                     <small class="theme-text-muted d-block mt-1">Subnet Containers</small>
-                    <a href="{% url 'prefix_list' %}" class="stretched-link"></a>
+                    <a href="{% url 'prefix_list' %}" class="stretched-link" aria-label="View Managed Prefixes"></a>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card stats-card border-primary h-100 shadow-sm">
                 <div class="card-body">
-                    <h6 class="text-uppercase theme-text-muted small fw-bold">IP Allocations</h6>
+                    <div class="text-uppercase theme-text-muted small fw-bold">IP Allocations</div>
                     <div class="d-flex align-items-center">
                         <h2 class="mb-0 me-3">{{ ip_count }}</h2>
                         <i class="fas fa-address-card opacity-25 fa-2x text-primary"></i>
                     </div>
                     <!-- Added usage label to provide better network context (LO2.2 Read) -->
                     <small class="theme-text-muted d-block mt-1">Addresses Assigned</small>
-                    <a href="{% url 'ip_list' %}" class="stretched-link"></a>
+                    <a href="{% url 'ip_list' %}" class="stretched-link" aria-label="View IP Allocations"></a>
                 </div>
             </div>
         </div>
@@ -144,7 +144,7 @@
         <div class="col-lg-8">
             <div class="card activity-card shadow-sm h-100">
                 <div class="card-header bg-transparent py-3 border-bottom d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 fw-bold theme-text-main">Recent Maintenance Activity</h5>
+                <h3 class="mb-0 fw-bold theme-text-main">Recent Maintenance Activity</h3>
                     <a href="{% url 'kanban_board' %}" class="btn btn-sm btn-link theme-text-muted text-decoration-none">
                         View Board <i class="fas fa-chevron-right ms-1"></i>
                     </a>
@@ -172,7 +172,7 @@
                                         {% elif ticket.severity == 'WARNING' %}
                                             <span class="badge bg-warning text-dark">Warning</span>
                                         {% else %}
-                                            <span class="badge bg-info">Info</span>
+                                            <span class="badge bg-info text-dark">Info</span>
                                         {% endif %}
                                     </td>
                                     <td>
@@ -203,7 +203,7 @@
         <div class="col-lg-4">
             <div class="card activity-card shadow-sm h-100">
                 <div class="card-header bg-transparent py-3 border-bottom">
-                    <h5 class="mb-0 fw-bold theme-text-main">Data Center Status</h5>
+                    <h3 class="mb-0 fw-bold theme-text-main">Data Center Status</h3>
                 </div>
                 <div class="card-body">
                     {% for dc in dc_stats %}
@@ -232,15 +232,15 @@
         <div class="col-lg-10">
             <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 20px;">
                 <div class="row g-0">
-                    <div class="col-md-6 bg-primary d-flex align-items-center justify-content-center p-5 text-white">
+                    <div class="col-md-6 d-flex align-items-center justify-content-center p-5 text-white" style="background-color: #003d82;">
                         <div class="text-center">
                             <i class="fas fa-network-wired fa-5x mb-4"></i>
                             <h1 class="fw-bold">NetDevFlow</h1>
-                            <p class="lead opacity-75">Unified Infrastructure & Incident Control</p>
+                            <p class="lead">Unified Infrastructure & Incident Control</p>
                         </div>
                     </div>
                     <div class="col-md-6 p-5 bg-card">
-                        <h3 class="fw-bold theme-text-main mb-4">Internal Access Required</h3>
+                        <h2 class="fw-bold theme-text-main mb-4">Internal Access Required</h2>
                         <p class="theme-text-muted mb-4">
                             You are viewing the public gateway for the NetDevFlow management suite. To view active maintenance tickets, IP allocations, or device inventory, please authenticate with your staff credentials.
                         </p>

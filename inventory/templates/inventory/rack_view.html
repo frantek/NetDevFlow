@@ -65,7 +65,7 @@
     <div class="col-md-4">
         <div class="card mb-4 border-0 shadow-sm activity-card">
             <div class="card-header bg-transparent py-3 border-bottom">
-                <h5 class="fw-bold mb-0 theme-text-main">Rack Utilization</h5>
+                <h3 class="fw-bold mb-0 theme-text-main">Rack Utilization</h3>
             </div>
             <div class="card-body">
                 <div class="text-center mb-4">
@@ -75,7 +75,7 @@
                 <div class="d-grid gap-2">
                     <div class="p-3 theme-bg-surface rounded d-flex justify-content-between align-items-center">
                         <span class="theme-text-muted small text-uppercase fw-bold">Available Space</span>
-                        <span class="fw-bold text-success">{{ rack.get_available_units }}U</span>
+                        <span class="fw-bold theme-text-main">{{ rack.get_available_units }}U</span>
                     </div>
                     <div class="p-3 theme-bg-surface rounded d-flex justify-content-between align-items-center">
                         <span class="theme-text-muted small text-uppercase fw-bold">Status</span>
@@ -87,7 +87,7 @@
 
         <!-- Compliance & Audit Note -->
         <div class="p-3 rounded border theme-bg-surface shadow-sm small">
-            <h6 class="fw-bold mb-2 theme-text-main">Rack Compliance</h6>
+            <div class="fw-bold mb-2 theme-text-main">Rack Compliance</div>
             <p class="theme-text-muted mb-0">This enclosure is inspected for airflow efficiency and load balancing. Next audit scheduled: <strong>Q2 2026</strong>.</p>
         </div>
     </div>
@@ -177,7 +177,8 @@ document.addEventListener('DOMContentLoaded', () => {
         left: 0;
         width: 100%;
         height: 100%;
-        background-size: cover;
+        background-size: contain;
+        background-repeat: no-repeat;
         background-position: center;
         opacity: 0.6;
         z-index: 1;
@@ -236,5 +237,76 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     [data-theme="dark"] .rack-container { border-color: #000; }
+
+    /* Mobile Responsive Styles */
+    @media (max-width: 768px) {
+        .rack-container {
+            max-width: 100%;
+            padding: 12px;
+            border: 4px solid #444;
+        }
+
+        .rack-slot {
+            padding: 0 10px;
+            min-height: 30px;
+        }
+
+        .ru-tag {
+            font-size: 0.65rem;
+            width: 25px;
+        }
+
+        .device-link {
+            font-size: 0.8rem;
+        }
+
+        .device-label {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .device-image-bg {
+            background-size: contain;
+            background-position: left;
+        }
+
+        .device-status-dot {
+            width: 8px;
+            height: 8px;
+            right: 10px;
+        }
+
+        .empty-text {
+            font-size: 0.65rem;
+            margin-left: 5px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .rack-container {
+            padding: 8px;
+            border: 3px solid #444;
+        }
+
+        .rack-slot {
+            padding: 0 8px;
+            min-height: 28px;
+        }
+
+        .ru-tag {
+            font-size: 0.6rem;
+            width: 20px;
+        }
+
+        .device-link {
+            font-size: 0.75rem;
+        }
+
+        .empty-text {
+            font-size: 0.6rem;
+            margin-left: 3px;
+        }
+    }
 </style>
 {% endblock %}

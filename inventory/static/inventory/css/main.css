@@ -23,6 +23,58 @@
 .role-readonly { color: var(--role-readonly); }
 .role-pending { color: var(--role-pending); }
 
+/* Fix btn-outline-secondary contrast */
+.btn-outline-secondary {
+    color: var(--text-main) !important;
+    border-color: var(--border-color) !important;
+}
+
+.btn-outline-secondary:hover {
+    background-color: var(--accent-primary) !important;
+    border-color: var(--accent-primary) !important;
+    color: white !important;
+}
+
+/* Improve btn-outline-danger contrast, especially in dark mode */
+.btn-outline-danger {
+    color: #b02a37 !important;
+    border-color: #b02a37 !important;
+}
+
+.btn-outline-danger:hover {
+    background-color: #b02a37 !important;
+    border-color: #b02a37 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-outline-danger {
+    color: #ff6b6b !important;
+    border-color: #ff6b6b !important;
+}
+
+[data-theme="dark"] .btn-outline-danger:hover {
+    background-color: #ff6b6b !important;
+    border-color: #ff6b6b !important;
+    color: #1a1d21 !important;
+}
+
+/* Ensure undecorated links remain readable in dark mode */
+[data-theme="dark"] a.text-decoration-none {
+    color: #9ec5fe !important;
+}
+
+/* Fix text-primary contrast */
+span.text-primary,
+.text-primary {
+    color: #0056b3 !important;
+    font-weight: 600 !important;
+}
+
+[data-theme="dark"] span.text-primary,
+[data-theme="dark"] .text-primary {
+    color: #4dabf7 !important;
+}
+
 /* Easter Egg Styling */
 #easter-egg-container {
     display: none;

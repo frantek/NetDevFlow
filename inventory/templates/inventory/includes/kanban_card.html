@@ -8,7 +8,7 @@
         {% endif %}
     </div>
     
-    <h6 class="fw-bold mb-1 theme-text-main card-title-link">{{ ticket.title }}</h6>
+    <div class="fw-bold mb-1 theme-text-main card-title-link">{{ ticket.title }}</div>
     
     <!-- Updated to use latest_activity from the Canvas models.py -->
     <p class="theme-text-muted small mb-3 text-truncate-2">
@@ -30,7 +30,7 @@
         {% endif %}
     </div>
     
-    <a href="{% url 'ticket_update' ticket.id %}" class="stretched-link"></a>
+    <a href="{% url 'ticket_update' ticket.id %}" class="stretched-link" aria-label="View ticket: {{ ticket.title }}"></a>
 </div>
 
 <style>
