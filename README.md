@@ -264,7 +264,18 @@ erDiagram
 * **Optimisation (8.3):** To improve the user experience, AI suggested utilizing select\_related and prefetch\_related in my Django QuerySets. This optimization significantly reduced the number of database hits (solving the N+1 problem) and halved page load times for the inventory list.  
 * **Unit Testing (8.4):** GitHub Copilot was instrumental in generating a comprehensive test suite in test\_models.py. It provided the boilerplate for edge-case testing, such as verifying that the system correctly rejects duplicate IP assignments or malformed hostname strings.
 
-## **7\. Deployment Process**
+7. Quality Assurance (LO4)
+
+The project includes an automated test suite in inventory/tests.py verifying:
+
+1. **RBAC:** Technicians are blocked (403) from decommissioning hardware.
+2. **Security:** Pending users are redirected to a restricted view.
+3. **Logic:** IP allocation API correctly identifies used vs available addresses.
+4. **CRUD:** All models support full lifecycle management.
+
+Run tests: python manage.py test inventory
+
+## **8\. Deployment Process**
 
 The application is configured for a professional production environment on Heroku, utilizing a Gunicorn WSGI server and a secure PostgreSQL add-on.
 
