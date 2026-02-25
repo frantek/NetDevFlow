@@ -22,9 +22,9 @@ Development was managed via an Agile board, utilizing an iterative workflow to e
 ## **3\. Tech Stack**
 
 * **Backend:** Django 5.x and Python 3.12 provide a robust, "batteries-included" framework for managing complex relational data and secure user authentication.  
-* **Frontend:** A combination of Semantic HTML5, Custom CSS3, and Bootstrap 5 ensures a professional, responsive interface that maintains high accessibility standards (WCAG).  
+* **Frontend:** A combination of Semantic HTML5, Custom CSS3 (with Dark Mode sync), and Bootstrap 5 ensures a professional, responsive interface that maintains high accessibility standards (WCAG).  
 * **Database:** PostgreSQL is utilized for its reliability and support for complex relationship queries.  
-* **Deployment:** Heroku Cloud Hosting for scalable, high-availability production access.
+* **Deployment:** Heroku Cloud with WhiteNoise for static asset management.
 
 ## **4\. Front-End Design & Wireframes**
 
@@ -128,7 +128,7 @@ Maintenance tickets use a chronological thread model, allowing technicians to po
 ```
 ### **4.6 Automated IP Allocation Form**
 
-The IP allocation form uses a dynamic lookup system. Selecting a prefix triggers an API call that returns only available host addresses, preventing duplicate assignments.
+The IP allocation form uses a dynamic lookup system via the GetAvailableIPsView API endpoint. Selecting a prefix triggers an API call to `/ips/available/<prefix_id>/` that returns only available host addresses, preventing duplicate assignments.
 ```
 \+-----------------------------------------------------------------------+  
 | ALLOCATE NEW IP ADDRESS                                               |  
@@ -147,7 +147,7 @@ The IP allocation form uses a dynamic lookup system. Selecting a prefix triggers
 |                                                                       |  
 |                                                  \[CONFIRM ALLOCATION\] |  
 ```
-### **4.3 IPAM: VLAN & Prefix Management**
+### **4.7 IPAM: VLAN & Prefix Management**
 
 Tabular interfaces for managing logical network segments with site-specific scoping.
 ```
@@ -161,25 +161,45 @@ Tabular interfaces for managing logical network segments with site-specific scop
 | \[ 30 \] | Guest-WiFi       | Global           | \[Active\]   | \[E\] \[D\]   |  
 \+-----------------------------------------------------------------------+
 ```
-### **4.8 Mobile View (Technician Interface)**
+### **4.8 Logical Network Map (VLAN/Site Topology)**
+
+A high-level visualization of how Layer 2 segments span physical sites, allowing engineers to verify DCI (Data Center Interconnect) configurations.
 ```
-\+-----------------------+  
-| \[=\]   NetDevFlow  \[U\] |  
-\+-----------------------+  
-| Welcome, Tech1        |  
-| \[+ Device\] \[+ Ticket\] |  
-\+-----------------------+  
-| ONLINE DEVICES: 42    |  
-| \[||||||||||     \]     |  
-\+-----------------------+  
-| CRITICAL TICKETS: 05  |  
-| \[\!\!           \]       |  
-\+-----------------------+  
-| RECENT LOGS:          |  
-| \> SW-CORE-01: Alert   |  
-| \> SRV-DB-02: Fixed    |  
-\+-----------------------+
++-----------------------------------------------------------------------+
+| NETWORK TOPOLOGY MAP                                                  |
++-----------------------------------------------------------------------+
+| [ SITE: DC-ALPHA ]             [ SITE: DC-BRAVO ]                     |
+|  +----------------+             +----------------+                    |
+|  | VLAN 10 (Srv)  |<----------->| VLAN 10 (Srv)  | [ VXLAN / DCI ]    |
+|  +----------------+             +----------------+                    |
+|         |                               |                             |
+|  +----------------+             +----------------+                    |
+|  | VLAN 20 (IoT)  |             | VLAN 30 (User) |                    |
+|  +----------------+             +----------------+                    |
++-----------------------------------------------------------------------+
 ```
+
+### **4.9 Mobile View & Responsive Adaptation**
+
+The interface is optimized for field technicians on mobile devices, utilizing vertical stacking for cards and tables to prevent horizontal scrolling.
+```
++--------------------------+    +--------------------------+
+| [=]   NetDevFlow   [User]|    | [=]   NetDevFlow   [User]|
++--------------------------+    +--------------------------+
+|                          |    |                          |
+|  COMMAND CENTER          |    |  RACK: DC1-A01           |
+|                          |    |  [ 24/42U OCCUPIED ]     |
+|  [ ONLINE: 42 ]          |    |  +--------------------+  |
+|  [ CRITICAL: 05 ]        |    |  | [40] SW-CORE-01    |  |
+|                          |    |  +--------------------+  |
+|  RECENT ACTIVITY         |    |  | [38] SRV-PROD-01   |  |
+|  #1092 | SW-CORE-01      |    |  +--------------------+  |
+|  [Progress]              |    |                          |
++--------------------------+    +--------------------------+
+  (Vertical Dashboard)            (Compressed Rack View)
+```
+
+
 ## **5\. Database Design (LO7)**
 
 The database architecture is designed to enforce referential integrity and support multi-tenant maintenance workflows. It ensures that no orphan tickets or unassigned IPs can exist without a corresponding valid hardware asset.
@@ -259,10 +279,10 @@ erDiagram
 
 ## **6\. AI Reflection (LO8)**
 
-* **Code Creation (8.1):** I leveraged AI to architect the Django Models and determine the most efficient field types. Specifically, the AI suggested using GenericIPAddressField, which provides built-in validation for both IPv4 and IPv6, saving manual regex implementation time.  
-* **Debugging (8.2):** During the implementation of custom decorators for role-based access, AI identified a flaw in my permission-checking logic that would have allowed "Technicians" to bypass "Manager" restrictions. This intervention was critical for securing the application.  
+* **Code Creation (8.1):** I leveraged AI to architect the Django Models and determine the most efficient field types. Specifically, the AI suggested using GenericIPAddressField, which provides built-in validation for both IPv4 and IPv6, saving manual regex implementation time. AI also helped architect the complex DCIM hierarchy and the Anti-Flash theme logic.
+* **Debugging (8.2):** During the implementation of custom decorators for role-based access, AI identified a flaw in my permission-checking logic that would have allowed "Technicians" to bypass "Manager" restrictions. This intervention was critical for securing the application. It also identified race conditions in Kanban AJAX update
 * **Optimisation (8.3):** To improve the user experience, AI suggested utilizing select\_related and prefetch\_related in my Django QuerySets. This optimization significantly reduced the number of database hits (solving the N+1 problem) and halved page load times for the inventory list.  
-* **Unit Testing (8.4):** GitHub Copilot was instrumental in generating a comprehensive test suite in test\_models.py. It provided the boilerplate for edge-case testing, such as verifying that the system correctly rejects duplicate IP assignments or malformed hostname strings.
+* **Unit Testing (8.4):** GitHub Copilot was instrumental in generating a comprehensive test suite in test\_models.py. It provided the boilerplate for edge-case testing, such as verifying that the system correctly rejects duplicate IP assignments or malformed hostname strings. It also generated edge-case tests for CIDR prefix validation.
 
 7. Quality Assurance (LO4)
 
@@ -272,14 +292,73 @@ The project includes an automated test suite in inventory/tests.py verifying:
 2. **Security:** Pending users are redirected to a restricted view.
 3. **Logic:** IP allocation API correctly identifies used vs available addresses.
 4. **CRUD:** All models support full lifecycle management.
+5. **JavaScript:** Verified interactive components including Kanban drag-and-drop state persistence, dynamic IP allocation API fetching, and the anti-flash theme switching logic. Testing ensures event listeners remain robust during DOM manipulation and API failures are handled with user-friendly error messages.
+
+### **7.1 Feature Validation & Manual Testing (LO4.3)**
+
+The following matrix documents the manual verification of core system requirements against expected outcomes to ensure operational stability.
+
+| Feature | Action | Expected Result | Status |
+| :---- | :---- | :---- | :---- |
+| **User Lockout** | Register as a new user. | Account created but access restricted to dashboard until approval. | **PASS** |
+| **RBAC Enforcement** | Attempt to delete device as 'Technician'. | System returns a 403 Forbidden page or restricts UI visibility. | **PASS** |
+| **IP Allocation** | Select a full /30 prefix. | API returns only available host IPs; form blocks invalid entries. | **PASS** |
+| **Kanban Persistence** | Drag ticket to 'Resolved'. | Refresh page; ticket remains in 'Resolved' column. | **PASS** |
+| **Rack Collision** | Install 2U device in occupied RU. | Form validation fails; error message regarding physical space conflict. | **PASS** |
+| **Dark Mode Sync** | Toggle theme in Admin HQ. | Main site theme updates immediately via localStorage sync. | **PASS** |
+| **Responsive Design** | View Inventory on Mobile. | Tables transform into vertically stacked cards for legibility. | **PASS** |
 
 Run tests: python manage.py test inventory
 
 ## **8\. Deployment Process**
 
-The application is configured for a professional production environment on Heroku, utilizing a Gunicorn WSGI server and a secure PostgreSQL add-on.
+NetDevFlow is optimized for deployment on the **Heroku** platform using a distributed architecture.
 
-1. **Environment Config:** Create a Procfile and requirements.txt. Set DEBUG=False and move the SECRET\_KEY and database credentials to Heroku Config Vars.  
-2. **Static Assets:** Configure WhiteNoise or a similar solution to serve static CSS and JS files directly through Gunicorn.  
-3. **CI/CD Integration:** Link the GitHub repository to the Heroku pipeline for seamless automated deployments whenever changes are merged to the main branch.  
-4. **Data Migration:** Execute heroku run python manage.py migrate to securely initialize the database schema in the production environment and create the initial admin superuser.
+### **8.1 Production Architecture**
+
+* **Web Server:** Gunicorn (Green Unicorn) for handling concurrent requests.  
+* **Static Files:** WhiteNoise serves CSS/JS directly from the web process.  
+* **Media Storage:** Since Heroku has an ephemeral filesystem, Cloudinary is used to store device\_image uploads permanently.  
+* **Database:** Heroku Postgres provides a managed relational database.
+
+### **8.2 Deployment Steps**
+
+1. **Environment Preparation:**  
+   Ensure requirements.txt contains dj-database-url, psycopg2-binary, whitenoise, and cloudinary. Ensure the Procfile is present:  
+   release: python manage.py migrate  
+   web: gunicorn netdevflow\_project.wsgi
+
+2. **Heroku App Creation:**  
+   heroku create netdevflow-app  
+   heroku addons:create heroku-postgresql:mini
+
+3. **Setting Config Vars (Environment Variables):**  
+   Sensitive keys are never committed to Git. Set them via the Heroku Dashboard or CLI:  
+   \# Security & Mode  
+   heroku config:set SECRET\_KEY='your-private-key'  
+   heroku config:set DJANGO\_DEBUG='False'
+
+   \# Cloudinary (Media Storage)  
+   heroku config:set CLOUDINARY\_URL='cloudinary://api\_key:api\_secret@cloud\_name'
+
+   \# Allowed Hosts  
+   heroku config:set ALLOWED\_HOSTS='netdevflow-app.herokuapp.com'
+
+4. **Push to Production:**  
+   git push heroku main
+
+5. **Post-Deployment Tasks:**  
+   \# Run initial migrations if release phase failed  
+   heroku run python manage.py migrate
+
+   \# Create initial admin account  
+   heroku run python manage.py createsuperuser
+
+### **8.3 Local vs Production Workflow**
+
+The application uses dj-database-url in settings.py to automatically switch between:
+
+* **Local:** db.sqlite3 (for rapid development).  
+* **Production:** Heroku Postgres (for high-concurrency relational storage).
+
+This satisfies **LO6** by demonstrating a professional deployment pipeline with environment-specific configurations.
