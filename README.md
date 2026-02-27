@@ -355,27 +355,31 @@ NetDevFlow is optimized for deployment on the **Heroku** platform using a distri
 
 3. **Setting Config Vars (Environment Variables):**  
    Sensitive keys are never committed to Git. Set them via the Heroku Dashboard or CLI:  
-   \# Security & Mode  
    ```
+   \# Security & Mode  
+   
    heroku config:set SECRET\_KEY='your-private-key'  
    heroku config:set DJANGO\_DEBUG='False'
-   ```
+   
 
    \# Cloudinary (Media Storage)  
-   ```heroku config:set CLOUDINARY\_URL='cloudinary://api\_key:api\_secret@cloud\_name'```
+   heroku config:set CLOUDINARY\_URL='cloudinary://api\_key:api\_secret@cloud\_name'
 
    \# Allowed Hosts  
-   ```heroku config:set ALLOWED\_HOSTS='netdevflow-app.herokuapp.com'```
+   heroku config:set ALLOWED\_HOSTS='netdevflow-app.herokuapp.com'
+   ```
 
 4. **Push to Production:**  
    ```git push heroku main```
 
 5. **Post-Deployment Tasks:**  
+   ```
    \# Run initial migrations if release phase failed  
-   ```heroku run python manage.py migrate```
+   heroku run python manage.py migrate
 
    \# Create initial admin account  
-   ```heroku run python manage.py createsuperuser```
+   heroku run python manage.py createsuperuser
+   ```
 
 ### **8.3 Local vs Production Workflow**
 
