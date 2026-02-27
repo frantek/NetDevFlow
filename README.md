@@ -358,15 +358,15 @@ NetDevFlow is optimized for deployment on the **Heroku** platform using a distri
    ```
    # Security & Mode  
    
-   heroku config:set SECRET\_KEY='your-private-key'  
-   heroku config:set DJANGO\_DEBUG='False'
+   heroku config:set SECRET_KEY='your-private-key'  
+   heroku config:set DJANGO_DEBUG='False'
    
 
    # Cloudinary (Media Storage)  
-   heroku config:set CLOUDINARY\_URL='cloudinary://api\_key:api\_secret@cloud\_name'
+   heroku config:set CLOUDINARY_URL='cloudinary://api_key:api_secret@cloud_name'
 
    # Allowed Hosts  
-   heroku config:set ALLOWED\_HOSTS='netdevflow-app.herokuapp.com'
+   heroku config:set ALLOWED_HOSTS='netdevflow-app.herokuapp.com'
    ```
 
 4. **Push to Production:**  
