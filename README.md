@@ -206,7 +206,7 @@ The database architecture is designed to enforce referential integrity and suppo
 
 ### **5.1 Entity Relationship Diagram (ERD)**
 
-![Mermaid Diagram](/Docs/mermaid-diagram-2026-02-27-094918.png
+![Mermaid Diagram](/Docs/mermaid-diagram-2026-02-27-094918.png)
 
 ```
 erDiagram
